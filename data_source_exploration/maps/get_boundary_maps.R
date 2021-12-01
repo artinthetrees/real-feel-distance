@@ -1,3 +1,6 @@
+
+repository_path <- "C:/Users/Andrea/Desktop/repositories/real-feel-distance/"
+
 # https://crd230.github.io/lab4a.html
 # https://mran.microsoft.com/snapshot/2016-06-30/web/packages/tmap/vignettes/tmap-nutshell.html
 # https://walker-data.com/census-r/spatial-analysis-with-us-census-data.html#distance-and-proximity-analysis
@@ -121,20 +124,20 @@ tmap::tmap_save(cook_and_chicago_tracts_map,
 chicago.city.tracts.utm$area <- 
   sf::st_area(chicago.city.tracts.utm)
 
-# convert utm to prism crs (lonlat)
-chicago.city.tracts.sf.lonlat <- 
-  chicago.city.tracts.utm %>%
-  sf::st_transform(crs = crs_lonlat)
+# # convert utm to prism crs (lonlat)
+# chicago.city.tracts.sf.lonlat <- 
+#   chicago.city.tracts.utm %>%
+#   sf::st_transform(crs = crs_lonlat)
+# 
+# chicago.city.2km.buffer.tracts.sf.lonlat <- 
+#   chicago.city.2km.buffer.tracts.utm %>%
+#   sf::st_transform(crs = crs_lonlat)
+# 
+# # convert sf to spatvector
+# chicago.city.tracts.spatvect.lonlat <- 
+#   terra::vect(chicago.city.tracts.sf.lonlat)
+# 
+# chicago.city.2km.buffer.tracts.spatvect.lonlat <- 
+#   terra::vect(chicago.city.2km.buffer.tracts.sf.lonlat)
 
-chicago.city.2km.buffer.tracts.sf.lonlat <- 
-  chicago.city.2km.buffer.tracts.utm %>%
-  sf::st_transform(crs = crs_lonlat)
-
-# convert sf to spatvector
-chicago.city.tracts.spatvect.lonlat <- 
-  terra::vect(chicago.city.tracts.sf.lonlat)
-
-chicago.city.2km.buffer.tracts.spatvect.lonlat <- 
-  terra::vect(chicago.city.2km.buffer.tracts.sf.lonlat)
-
-save.image("C:/Users/Andrea/Desktop/repositories/real-feel-distance/data_source_exploration/maps/get_boundary_maps.RData")
+save.image(paste0(repository_path,"data_source_exploration/maps/get_boundary_maps.RData"))
