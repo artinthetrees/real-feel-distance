@@ -14,6 +14,10 @@
 # vpdmin:	Daily minimum vapor pressure deficit
 # vpdmax:	Daily maximum vapor pressure deficit
 
+repository_path <- "C:/Users/Andrea/Desktop/repositories/real-feel-distance/"
+prism_base_path <- "C:/Users/Andrea/Desktop/prism_daily_data/July_2019/July 2019/"
+prism_var <- "tmax"
+
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(
   terra, # handle raster data
@@ -29,10 +33,26 @@ pacman::p_load(
   tmap # for mapping
 )
 
-load("C:/Users/Andrea/Desktop/repositories/real-feel-distance/data_source_exploration/maps/get_boundary_maps.RData")
 
-prism_base_path <- "C:/Users/Andrea/Desktop/prism_daily_data/July_2019/July 2019/"
-prism_var <- "tdmean"
+
+
+
+{
+if (file.exists(paste0(repository_path,"data_source_exploration/maps/get_boundary_maps.RData"))){
+  
+  load(paste0(repository_path,"data_source_exploration/maps/get_boundary_maps.RData"))
+  
+} else {
+  
+  stop("run get_boundary_maps.R script to get boundary maps")
+  
+}
+}
+
+if (!dir.exists(paste0(repository_path,"intermediate_data_products/"))){
+  dir.create(paste0(repository_path,"intermediate_data_products/"))
+}
+
 
 #--- the file name of the PRISM data just downloaded ---#
 prism_files <- 
@@ -40,10 +60,10 @@ prism_files <-
              full.names = TRUE)
 #prism_file <- prism_files[1]
 
-chicago.city.tmax_by_tract.mean.list <- list()
-chicago.city.tmax_by_tract.aw_mean.list <- list()
-chicago.city.2km.buffer.tmax_by_tract.mean.list <- list()
-chicago.city.2km.buffer.tmax_by_tract.aw_mean.list <- list()
+chicago.city.prism_var_by_tract.mean.list <- list()
+chicago.city.prism_var_by_tract.aw_mean.list <- list()
+chicago.city.2km.buffer.prism_var_by_tract.mean.list <- list()
+chicago.city.2km.buffer.prism_var_by_tract.aw_mean.list <- list()
 
 my_vars <- c()
 my_vars.list <- list()
@@ -57,14 +77,10 @@ for (p in 1:length(prism_files)){
   prism_rast <- terra::rast(prism_file)
   
   # only need to do this once
-  if (!exists("chicago.city.tracts.sf.lonlat") | sf::st_crs(chicago.city.tracts.sf.lonlat) != sf::st_crs(prism_rast)){
+  if (!exists("chicago.city.tracts.sf.lonlat")){
     
     print('converting chicago maps')
-    if (!exists("chicago.city.tracts.sf.lonlat")){
-      print('maps do not yet exist')
-    } else if (sf::st_crs(chicago.city.tracts.sf.lonlat) != sf::st_crs(prism_rast)){
-      print('maps crs do not match prism data')
-    }
+    
     
     ##############################################
     # Chicago - census tracts
@@ -96,80 +112,84 @@ for (p in 1:length(prism_files)){
   prism_rast.chicago.city.2km.buffer.tracts.lonlat <- 
     terra::crop(prism_rast, chicago.city.2km.buffer.tracts.sf.lonlat)
   
+  print("hello")
+  
   #--- extract values from the raster for each tract ---#
   # get all raster values per polygon PLUS the fraction of each raster within polygon 
   # to find an area-weighted summary later
-  chicago.city.tmax_by_tract <- 
+  chicago.city.prism_var_by_tract <- 
     terra::extract(prism_rast.chicago.city.tracts.lonlat, 
                    chicago.city.tracts.spatvect.lonlat, 
                    exact = TRUE) 
   
-  chicago.city.2km.buffer.tmax_by_tract <- 
+  chicago.city.2km.buffer.prism_var_by_tract <- 
     terra::extract(prism_rast.chicago.city.2km.buffer.tracts.lonlat, 
                    chicago.city.2km.buffer.tracts.spatvect.lonlat, 
                    exact = TRUE) 
   
-  my_var <- sym(names(chicago.city.tmax_by_tract)[2])
-  my_vars <- c(my_vars,names(chicago.city.tmax_by_tract)[2])
-  my_vars.list[[p]] <- names(chicago.city.tmax_by_tract)[2]
+  print("hi")
   
-  chicago.city.tmax_by_tract.mean <- 
-    chicago.city.tmax_by_tract %>%
+  my_var <- sym(names(chicago.city.prism_var_by_tract)[2])
+  my_vars <- c(my_vars,names(chicago.city.prism_var_by_tract)[2])
+  my_vars.list[[p]] <- names(chicago.city.prism_var_by_tract)[2]
+  
+  chicago.city.prism_var_by_tract.mean <- 
+    chicago.city.prism_var_by_tract %>%
     group_by(ID) %>%
-    summarize(tmax = mean(!!my_var),
-              aw_tmax = sum(fraction * !!my_var)/sum(fraction))
+    summarize(prism_var = mean(!!my_var),
+              aw_prism_var = sum(fraction * !!my_var)/sum(fraction))
   
-  chicago.city.tmax_by_tract.mean.list[[p]] <- chicago.city.tmax_by_tract.mean$tmax
-  chicago.city.tmax_by_tract.aw_mean.list[[p]] <- chicago.city.tmax_by_tract.mean$aw_tmax
+  chicago.city.prism_var_by_tract.mean.list[[p]] <- chicago.city.prism_var_by_tract.mean$prism_var
+  chicago.city.prism_var_by_tract.aw_mean.list[[p]] <- chicago.city.prism_var_by_tract.mean$aw_prism_var
   
-  chicago.city.2km.buffer.tmax_by_tract.mean <- 
-    chicago.city.2km.buffer.tmax_by_tract %>%
+  chicago.city.2km.buffer.prism_var_by_tract.mean <- 
+    chicago.city.2km.buffer.prism_var_by_tract %>%
     group_by(ID) %>%
-    summarize(tmax = mean(!!my_var),
-              aw_tmax = sum(fraction * !!my_var)/sum(fraction))
+    summarize(prism_var = mean(!!my_var),
+              aw_prism_var = sum(fraction * !!my_var)/sum(fraction))
   
-  chicago.city.2km.buffer.tmax_by_tract.mean.list[[p]] <- chicago.city.2km.buffer.tmax_by_tract.mean$tmax
-  chicago.city.2km.buffer.tmax_by_tract.aw_mean.list[[p]] <- chicago.city.2km.buffer.tmax_by_tract.mean$aw_tmax
+  chicago.city.2km.buffer.prism_var_by_tract.mean.list[[p]] <- chicago.city.2km.buffer.prism_var_by_tract.mean$prism_var
+  chicago.city.2km.buffer.prism_var_by_tract.aw_mean.list[[p]] <- chicago.city.2km.buffer.prism_var_by_tract.mean$aw_prism_var
   
  
 }
 
-chicago.city.tmax_by_tract.mean.df <- as.data.frame(do.call(cbind, chicago.city.tmax_by_tract.mean.list))
-chicago.city.tmax_by_tract.aw_mean.df <- as.data.frame(do.call(cbind, chicago.city.tmax_by_tract.aw_mean.list))
-chicago.city.2km.buffer.tmax_by_tract.mean.df <- as.data.frame(do.call(cbind, chicago.city.2km.buffer.tmax_by_tract.mean.list))
-chicago.city.2km.buffer.tmax_by_tract.aw_mean.df <- as.data.frame(do.call(cbind, chicago.city.2km.buffer.tmax_by_tract.aw_mean.list))
+chicago.city.prism_var_by_tract.mean.df <- as.data.frame(do.call(cbind, chicago.city.prism_var_by_tract.mean.list))
+chicago.city.prism_var_by_tract.aw_mean.df <- as.data.frame(do.call(cbind, chicago.city.prism_var_by_tract.aw_mean.list))
+chicago.city.2km.buffer.prism_var_by_tract.mean.df <- as.data.frame(do.call(cbind, chicago.city.2km.buffer.prism_var_by_tract.mean.list))
+chicago.city.2km.buffer.prism_var_by_tract.aw_mean.df <- as.data.frame(do.call(cbind, chicago.city.2km.buffer.prism_var_by_tract.aw_mean.list))
 
 my_vars_clean <- sapply(strsplit(my_vars, split= "_", fixed = TRUE), tail, 1L)
 
-names(chicago.city.tmax_by_tract.mean.df) <- my_vars_clean
-names(chicago.city.tmax_by_tract.aw_mean.df) <- my_vars_clean
-names(chicago.city.2km.buffer.tmax_by_tract.mean.df) <- my_vars_clean
-names(chicago.city.2km.buffer.tmax_by_tract.aw_mean.df) <- my_vars_clean
+names(chicago.city.prism_var_by_tract.mean.df) <- my_vars_clean
+names(chicago.city.prism_var_by_tract.aw_mean.df) <- my_vars_clean
+names(chicago.city.2km.buffer.prism_var_by_tract.mean.df) <- my_vars_clean
+names(chicago.city.2km.buffer.prism_var_by_tract.aw_mean.df) <- my_vars_clean
 
-chicago.city.tmax_by_tract.mean.summary.df <-
-  gather(chicago.city.tmax_by_tract.mean.df) %>%
+chicago.city.prism_var_by_tract.mean.summary.df <-
+  gather(chicago.city.prism_var_by_tract.mean.df) %>%
   group_by(key) %>%
   summarize(across(.fns = list(mean=mean,min=min,max=max))) %>%
   mutate(max_f = weathermetrics::celsius.to.fahrenheit(value_max),
          min_f = weathermetrics::celsius.to.fahrenheit(value_min),
          range_f = max_f - min_f)
 
-chicago.city.tmax_by_tract.aw_mean.summary.df <-
-  gather(chicago.city.tmax_by_tract.aw_mean.df) %>%
+chicago.city.prism_var_by_tract.aw_mean.summary.df <-
+  gather(chicago.city.prism_var_by_tract.aw_mean.df) %>%
   group_by(key) %>%
   summarize(across(.fns = list(mean=mean,min=min,max=max))) %>%
   mutate(max_f = weathermetrics::celsius.to.fahrenheit(value_max),
          min_f = weathermetrics::celsius.to.fahrenheit(value_min),
          range_f = max_f - min_f)
 
-write.csv(chicago.city.tmax_by_tract.aw_mean.df,
-          "C:/Users/Andrea/Desktop/repositories/real-feel-distance/intermediate_data_products/chicago.city.tmax_by_tract.aw_mean.df")
+write.csv(chicago.city.prism_var_by_tract.aw_mean.df,
+          paste0(repository_path,"intermediate_data_products/chicago.city.",prism_var,"_by_tract.aw_mean.csv"))
 
-write.csv(chicago.city.2km.buffer.tmax_by_tract.aw_mean.df,
-          "C:/Users/Andrea/Desktop/repositories/real-feel-distance/intermediate_data_products/chicago.city.2km.buffer.tmax_by_tract.aw_mean.df")
+write.csv(chicago.city.2km.buffer.prism_var_by_tract.aw_mean.df,
+          paste0(repository_path,"intermediate_data_products/chicago.city.2km.buffer.",prism_var,"_by_tract.aw_mean.csv"))
 
-write.csv(chicago.city.tmax_by_tract.aw_mean.summary.df,
-          "C:/Users/Andrea/Desktop/repositories/real-feel-distance/intermediate_data_products/chicago.city.tmax_by_tract.aw_mean.summary.df")
+write.csv(chicago.city.prism_var_by_tract.aw_mean.summary.df,
+          paste0(repository_path,"intermediate_data_products/chicago.city.",prism_var,"_by_tract.aw_mean.summary.csv"))
 
 
 
