@@ -14,60 +14,56 @@ dist_to_grocery <-
   read.csv("C:/Users/Andrea/Desktop/repositories/real-feel-distance/intermediate_data_products/dist_to_grocery.csv",
            stringsAsFactors = FALSE)
 
-
-
-tmax_summary <- 
-  read.csv("C:/Users/Andrea/Desktop/repositories/real-feel-distance/intermediate_data_products/chicago.city.tmax_by_tract.aw_mean.summary.csv",
+chicago.city.tmax_by_tract <- 
+  read.csv("C:/Users/Andrea/Desktop/repositories/real-feel-distance/intermediate_data_products/chicago.city.tmax_by_tract.aw_mean.csv",
            stringsAsFactors = FALSE)
 
-tdmean_summary <- 
-  read.csv("C:/Users/Andrea/Desktop/repositories/real-feel-distance/intermediate_data_products/chicago.city.tdmean_by_tract.aw_mean.summary.csv",
+chicago.city.tdmean_by_tract <- 
+  read.csv("C:/Users/Andrea/Desktop/repositories/real-feel-distance/intermediate_data_products/chicago.city.tdmean_by_tract.aw_mean.csv",
            stringsAsFactors = FALSE)
 
-range_summary <- 
-  left_join(tmax_summary %>% select(key, min_f, max_f, range_f) %>% setNames(paste0('tmax.', names(.))),
-            tdmean_summary %>% select(key, min_f, max_f, range_f) %>% setNames(paste0('tdmean.', names(.))),
-            by = c("tmax.key" = "tdmean.key")) %>%
-  arrange(desc(tmax.range_f),desc(tdmean.range_f)) 
+names(chicago.city.tdmean_by_tract) <- stringr::str_sub(names(chicago.city.tdmean_by_tract), start= -8)
+names(chicago.city.tmax_by_tract) <- stringr::str_sub(names(chicago.city.tmax_by_tract), start= -8)
 
-range_summary$heat_index_max <- 
-  weathermetrics::heat.index(t = range_summary$tmax.max_f, 
-                             dp = range_summary$tdmean.max_f, 
-                             temperature.metric = "fahrenheit", 
-                             output.metric = "fahrenheit")
+dfs.list <- list()
 
-range_summary$heat_index_min <- 
-  weathermetrics::heat.index(t = range_summary$tmax.min_f, 
-                             dp = range_summary$tdmean.min_f, 
-                             temperature.metric = "fahrenheit", 
-                             output.metric = "fahrenheit")
+for (i in 1:length(select_days_char)){
+  
+  dfs.list[[i]] <- 
+    dist_to_grocery %>% 
+    select(X,median_dist_to_grocery) %>%
+    rename(dist_to_grocery = median_dist_to_grocery) %>%
+    left_join(.,
+              chicago.city.tmax_by_tract %>% 
+                select(X,.data[[select_days_char[i]]]) %>%
+                rename(tmax = .data[[select_days_char[i]]]),
+              by = c("X" = "X")) %>%
+    left_join(.,
+              chicago.city.tdmean_by_tract %>%
+                select(X,.data[[select_days_char[i]]]) %>%
+                rename(tdmean = .data[[select_days_char[i]]]),
+              by = c("X" = "X")
+    ) %>%
+    mutate(heat_index = weathermetrics::heat.index(t = tmax,
+                                                   dp = tdmean, 
+                                                   temperature.metric = "celsius", 
+                                                   output.metric = "celsius"),
+           tmax_f = weathermetrics::celsius.to.fahrenheit(tmax, round = 2),
+           tdmean_f = weathermetrics::celsius.to.fahrenheit(tdmean, round = 2),
+           heat_index_f = weathermetrics::heat.index(t = tmax_f,
+                                                     dp = tdmean_f, 
+                                                     temperature.metric = "fahrenheit", 
+                                                     output.metric = "fahrenheit"))
+  
+  
+}
 
-range_summary$heat_index_range <- 
-  range_summary$heat_index_max - range_summary$heat_index_min
+names(dfs.list) <- select_days_char
 
-range_summary_select <- 
-  range_summary %>% 
-  filter(heat_index_range > 10) %>%
-  arrange(desc(heat_index_range))
+dfs.bind <- data.table::rbindlist(dfs.list,idcol = "date")
 
-# > max(range_summary$tmax_range_f)
-# [1] 12.34
-# > max(range_summary$tdmean_range_f)
-# [1] 5.29
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+write.csv(dfs.bind,
+          "C:/Users/Andrea/Desktop/repositories/real-feel-distance/intermediate_data_products/chicago.city.daily_data.csv")
 
 
 
