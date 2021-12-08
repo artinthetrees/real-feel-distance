@@ -69,7 +69,9 @@ write.csv(chicago.city.daily_data,
 
 
 
-
+#https://www.treeequityscore.org/map/#11/41.8337/-87.7224
+#https://www.treeequityscore.org/data/
+#https://www.earthdefine.com/treemap/
 
 
 
