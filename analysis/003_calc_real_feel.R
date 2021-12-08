@@ -53,10 +53,10 @@ chicago.city.daily_data <-
          raw_dist = dist_to_grocery,
          real_feel_dist = 
            dist_to_grocery + 
-           dist_to_grocery*age_dummy*age_penalty +
-           dist_to_grocery*eval(temp_abv70F_dummy)*temp_abv70F_penalty*(tmax - weathermetrics::fahrenheit.to.celsius(temp_ref_f, round = 2)) +
-           dist_to_grocery*eval(dp_abv55F_dummy)*dp_abv55F_penalty*(tdmean - weathermetrics::fahrenheit.to.celsius(dp_ref_f, round = 2)) +
-           dist_to_grocery*eval(hi_abv80F_dummy)*hi_abv80F_penalty*(heat_index - weathermetrics::fahrenheit.to.celsius(hi_ref_f, round = 2)),
+           age_dist +
+           temp_dist + 
+           dp_dist + 
+           hi_dist,
          p_increase = real_feel_dist/raw_dist - 1,
          more_than_double = ifelse(p_increase > 1,1,0),
          newly_avoid_trip = ifelse(raw_dist <= walking_dist & real_feel_dist > walking_dist,1,0))
