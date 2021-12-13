@@ -26,72 +26,111 @@ for (i in 1:length(unique(real_feel$date))){
   
 }
 
-sf::st_crs(dfs.list[[1]])$proj4string
+my_df <- dfs.list[[4]]
 
-tmap::tm_shape(dfs.list[[4]]) +
-  tmap::tm_fill("heat_index_f",title="Heat Index",n=4,style="jenks")  +
-  tmap::tm_borders() +
-  tmap::tm_layout(title = "Natural Breaks Map", title.position = c("right","bottom"))
+sf::st_crs(my_df)$proj4string
 
-tmap::tm_shape(dfs.list[[4]]) +
-  tmap::tm_fill("raw_dist",title="Heat Index",n=4,style="quantile")  +
-  tmap::tm_borders() +
-  tmap::tm_layout(title = "Quantile Map", title.position = c("right","bottom"))
+# tmap::tm_shape(my_df) +
+#   tmap::tm_fill("heat_index_f",title="Heat Index",n=4,style="jenks")  +
+#   tmap::tm_borders() +
+#   tmap::tm_layout(title = "Natural Breaks Map", title.position = c("right","bottom"))
 
-tmap::tm_shape(dfs.list[[4]]) +
-  tmap::tm_fill("real_feel_dist",title="Heat Index",n=4,style="quantile")  +
-  tmap::tm_borders() +
-  tmap::tm_layout(title = "Quantile Map", title.position = c("right","bottom"))
+tmap::tm_shape(my_df) +
+  tmap::tm_fill("tmax_f",title="Temperature (F)",n=10,style="quantile", palette="Reds")  +
+  tmap::tm_borders()
 
-dfs.list[[4]]$avoid_trip_cat <- ifelse(dfs.list[[4]]$raw_dist > 1000,"avoid trip","take trip")
-dfs.list[[4]]$avoid_trip_cat <- ifelse(dfs.list[[4]]$newly_avoid_trip == 1,"newly avoid trip",dfs.list[[4]]$avoid_trip_cat)
-dfs.list[[4]]$avoid_trip_cat <- as.factor(dfs.list[[4]]$avoid_trip_cat)
+tmap::tm_shape(my_df) +
+  tmap::tm_fill("tdmean_f",title="Dew Point Temperature (F)",n=10,style="quantile", palette="Reds")  +
+  tmap::tm_borders()
 
-dfs.list[[4]]$dummy_color <- ifelse(dfs.list[[4]]$raw_dist > 1000,"orange","pink")
-dfs.list[[4]]$dummy_color <- ifelse(dfs.list[[4]]$newly_avoid_trip == 1,"red",dfs.list[[4]]$dummy_color)
+tmap::tm_shape(my_df) +
+  tmap::tm_fill("heat_index_f",title="Heat Index (F)",n=10,style="quantile", palette="Reds")  +
+  tmap::tm_borders()
 
-tmap::tm_shape(dfs.list[[4]]) +
-  tmap::tm_fill("dummy_color")  +
-  tmap::tm_borders() +
-  tmap::tm_layout(title = "Natural Breaks Map", title.position = c("right","bottom"))
+tmap::tm_shape(my_df) +
+  tmap::tm_fill("p_older_adult",title="% Older Adult",n=10,style="quantile", palette="Greens")  +
+  tmap::tm_borders()
 
-tmap::tm_shape(dfs.list[[4]]) +
-  tmap::tm_fill("avoid_trip_cat",style="cat",palette="Paired") 
+tmap::tm_shape(my_df) +
+  tmap::tm_fill("tpop_older_adult",title="# of Older Adults",n=10,style="quantile", palette="Greens")  +
+  tmap::tm_borders()
 
 
+my_df$avoid_trip_cat <- ifelse(my_df$raw_dist > 1000,"avoid trip","take trip")
+my_df$avoid_trip_cat <- ifelse(my_df$newly_avoid_trip == 1,"newly avoid trip",my_df$avoid_trip_cat)
+my_df$avoid_trip_cat <- as.factor(my_df$avoid_trip_cat)
 
-tmap::tm_shape(dfs.list[[4]]) +
-  tmap::tm_fill("raw_dist",title="Raw Distance (m)", midpoint = 1000, style = "quantile", n = 12, palette = )  +
-  tmap::tm_borders() +
-  tmap::tm_layout(title = "Quantile Map", title.position = c("right","bottom"))
+# my_df$dummy_color <- ifelse(my_df$raw_dist > 1000,"orange","pink")
+# my_df$dummy_color <- ifelse(my_df$newly_avoid_trip == 1,"red",my_df$dummy_color)
+# 
+# tmap::tm_shape(my_df) +
+#   tmap::tm_fill("dummy_color")  +
+#   tmap::tm_borders() +
+#   tmap::tm_layout(title = "Natural Breaks Map", title.position = c("right","bottom"))
 
-tmap::tm_shape(dfs.list[[4]]) +
-  tmap::tm_fill("real_feel_dist",title="Real Feel Distance (m)", midpoint = 1000, style = "quantile", n = 12)  +
-  tmap::tm_borders() +
-  tmap::tm_layout(title = "Quantile Map", title.position = c("right","bottom"))
+#pal <- RColorBrewer::brewer.pal(3,"PiYG")
 
-pal <- RColorBrewer::brewer.pal(8,"PiYG")
+tmap::tm_shape(my_df) +
+  tmap::tm_fill("avoid_trip_cat",style="cat",palette=c("pink","red","green")) 
 
-tmap::tm_shape(dfs.list[[4]]) +
+
+
+# tmap::tm_shape(my_df) +
+#   tmap::tm_fill("raw_dist",title="Raw Distance (m)", midpoint = 1000, style = "quantile", n = 12, palette = )  +
+#   tmap::tm_borders() +
+#   tmap::tm_layout(title = "Quantile Map", title.position = c("right","bottom"))
+# 
+# tmap::tm_shape(my_df) +
+#   tmap::tm_fill("real_feel_dist",title="Real Feel Distance (m)", midpoint = 1000, style = "quantile", n = 12)  +
+#   tmap::tm_borders() +
+#   tmap::tm_layout(title = "Quantile Map", title.position = c("right","bottom"))
+
+pal <- RColorBrewer::brewer.pal(10,"PiYG")
+
+tmap::tm_shape(my_df) +
   tmap::tm_polygons(col = "raw_dist", 
               style = "fixed",
-              breaks = c(0, 250, 500, 750, 1000, 1250, 1500, 2000, max(dfs.list[[4]]$raw_dist)),
+              breaks = c(0, 250, 500, 750, 1000, 1250, 1500, 2000, 3000, 5000, max(my_df$raw_dist)),
               midpoint = 1000,
               palette = rev(pal),
               legend.hist = TRUE) +
-  tmap::tm_layout(legend.outside = TRUE) 
+  tmap::tm_layout(legend.outside = TRUE) + 
+  tmap::tm_scale_bar(position=c("left", "bottom"))
 
-tmap::tm_shape(dfs.list[[4]]) +
+tmap::tm_shape(my_df) +
   tmap::tm_polygons(col = "real_feel_dist", 
                     style = "fixed",
-                    breaks = c(0, 250, 500, 750, 1000, 1250, 1500, 2000, max(dfs.list[[4]]$real_feel_dist)),
+                    breaks = c(0, 250, 500, 750, 1000, 1250, 1500, 2000, 3000, 5000, max(my_df$real_feel_dist)),
                     midpoint = 1000,
                     palette = rev(pal),
                     legend.hist = TRUE) +
-  tmap::tm_layout(legend.outside = TRUE) 
+  tmap::tm_layout(legend.outside = TRUE) + 
+  tmap::tm_scale_bar(position=c("left", "bottom"))
 
 
-
+hi <- 
+  my_df %>%
+  summarize(tpop = sum(tpop),
+            tpop_older_adult = sum(tpop_older_adult),
+            tpop_older_adult_nonwhite = sum(tpop_older_adult_nonwhite),
+            p_older_adult = tpop_older_adult/tpop,
+            t_pop_avoid_walk = sum(my_df$tpop[my_df$avoid_trip_cat == "avoid trip"], na.rm = TRUE),
+            t_pop_older_adult_avoid_walk = sum(my_df$tpop_older_adult[my_df$avoid_trip_cat == "avoid trip"], na.rm = TRUE),
+            t_pop_older_adult_newly_avoid_walk = sum(my_df$tpop_older_adult[my_df$avoid_trip_cat == "newly avoid trip"], na.rm = TRUE),
+            
+            t_pop_older_adult_nonwhite_newly_avoid_walk = sum(my_df$tpop_older_adult_nonwhite[my_df$avoid_trip_cat == "newly avoid trip"], na.rm = TRUE),
+            
+            t_pop_older_adult_poverty_reported_newly_avoid_walk = sum(my_df$tpop_older_adult_poverty_reported[my_df$avoid_trip_cat == "newly avoid trip"], na.rm = TRUE),
+            t_pop_older_adult_below_poverty_newly_avoid_walk = sum(my_df$tpop_older_adult_below_poverty[my_df$avoid_trip_cat == "newly avoid trip"], na.rm = TRUE),
+            
+            t_pop_older_adult_living_arrange_reported_newly_avoid_walk = sum(my_df$tpop_older_adult_living_arrange_reported[my_df$avoid_trip_cat == "newly avoid trip"], na.rm = TRUE),
+            t_pop_older_adult_live_alone_newly_avoid_walk = sum(my_df$tpop_older_adult_live_alone[my_df$avoid_trip_cat == "newly avoid trip"], na.rm = TRUE),
+            
+            p_pop_older_adult_nonwhite_newly_avoid_walk = t_pop_older_adult_nonwhite_newly_avoid_walk/t_pop_older_adult_newly_avoid_walk,
+            p_pop_older_adult_below_poverty_newly_avoid_walk = t_pop_older_adult_below_poverty_newly_avoid_walk/t_pop_older_adult_poverty_reported_newly_avoid_walk,
+            p_pop_older_adult_live_alone_newly_avoid_walk = t_pop_older_adult_live_alone_newly_avoid_walk/t_pop_older_adult_living_arrange_reported_newly_avoid_walk
+            
+            )
 
 
 
