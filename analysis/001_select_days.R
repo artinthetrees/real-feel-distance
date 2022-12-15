@@ -33,6 +33,26 @@ range_summary$heat_index_min <-
 range_summary$heat_index_range <- 
   range_summary$heat_index_max - range_summary$heat_index_min
 
+range_summary <- 
+  range_summary %>% 
+  mutate(heat_index_max_lvl = 
+           case_when(heat_index_max < 80 ~ 0,
+                     heat_index_max <= 90 ~ 1,
+                     heat_index_max <= 103 ~ 2,
+                     heat_index_max <= 124 ~ 3,
+                     heat_index_max > 124 ~ 4),
+         heat_index_min_lvl = 
+           case_when(heat_index_min < 80 ~ 0,
+                     heat_index_min <= 90 ~ 1,
+                     heat_index_min <= 103 ~ 2,
+                     heat_index_min <= 124 ~ 3,
+                     heat_index_min > 124 ~ 4),
+         heat_index_max_min_lvl_diff = heat_index_max_lvl - heat_index_min_lvl) %>%
+  arrange(desc(heat_index_max_min_lvl_diff),
+          desc(heat_index_range))
+    
+
+
 range_summary_select <- 
   range_summary %>% 
   filter(heat_index_range > 10) %>%
