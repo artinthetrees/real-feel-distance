@@ -18,7 +18,7 @@
 
 library(tidyverse)
 
-# census_api_key("c422eb7d8cbb6fab74fe1c0180711dab008a2251", install = TRUE)
+# tidycensus::census_api_key("c422eb7d8cbb6fab74fe1c0180711dab008a2251", install = TRUE)
 # readRenviron("~/.Renviron")
 
 # v19 <- tidycensus::load_variables(2019, "acs5", cache = TRUE)
