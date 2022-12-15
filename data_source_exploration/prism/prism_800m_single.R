@@ -233,3 +233,10 @@ write.csv(chicago.city.prism_var_by_tract.aw_mean.summary.df,
 #   tmap::tm_polygons(border.col = "blue", alpha = .10) +
 #   tmap::tm_shape(chicago.city.tracts.sf.lonlat) + 
 #   tmap::tm_polygons(alpha = .10)
+
+tmap::tm_shape(prism_rast.chicago.city.tracts.lonlat) + 
+  tmap::tm_raster(style = "cont", title = "Tmax (C)",
+            palette = terrain.colors(64))+
+  tmap::tm_legend(outside = TRUE) +
+  tmap::tm_shape(chicago.city.tracts.sf.lonlat) + 
+  tmap::tm_borders()
