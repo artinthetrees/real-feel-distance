@@ -1,12 +1,12 @@
-# state = "IL"
-# county = "Cook"
-# city = "Chicago"
-# year = 2019
+state = "IL"
+county = "Cook"
+city = "Chicago"
+year = 2022
 
-state = "OR"
-county = "Multnomah"
-city = "Portland"
-year = 2019
+# state = "OR"
+# county = "Multnomah"
+# city = "Portland"
+# year = 2019
 
 
 repository_path <- "C:/Users/tentner-andrea/project_repositories/real-feel-distance/"
@@ -14,11 +14,32 @@ repository_path <- "C:/Users/tentner-andrea/project_repositories/real-feel-dista
 crs_lonlat <- "+proj=longlat +datum=NAD83"
 crs_utm <- "+proj=utm +zone=16N +datum=NAD83 +ellps=GRS80"
 
+##################################################################################################
+# References
+##################################################################################################
 
 # https://crd230.github.io/lab4a.html
 # https://mran.microsoft.com/snapshot/2016-06-30/web/packages/tmap/vignettes/tmap-nutshell.html
 # https://walker-data.com/census-r/spatial-analysis-with-us-census-data.html#distance-and-proximity-analysis
 # https://github.com/r-tmap/tmap/issues/511
+
+##################################################################################################
+# Notes
+
+# 1) Questions/potential issues regarding accuracy of state/county/city/tract boundaries, especially over time
+
+# state level boundary and tracts from tidycensus
+#   * does what is returned from this call depend on when it is called? e.g. are boundaries/tracts updated over time and what is returned just the latest available?
+#   * call specifies year, so maybe what is returned is the boundary/tract values available specific to that year (however, the year may only impact what is returned for the survey data per tract)
+# city level boundary from tigris 
+# city level tracts are from overlaying tigris-sourced boundary on tidycensus-sourced tracts for the whole state
+# county level boundary from tidycensus
+# county level tracts are from overlaying tidycensus-sourced boundary on tidycensus-sourced tracts for the whole state
+
+# 2) If city is very small compared to the whole containing county the visualization of the city with the 2km buffer within the county is not very useful
+# 3) If city is the same as the containing county (or almost so) the visualization of the city with the 2km buffer within the county is not very useful AND
+##################################################################################################
+
 
 
 
@@ -268,8 +289,12 @@ tmap::tm_shape(county.tracts.utm) +
   tmap::tm_shape(city.tracts.utm) +
   tmap::tm_polygons()
 
+saveDir = paste0(repository_path,"intermediate-data-products/boundary-maps/",state,"_",county,"_",city,"_",year,"/")
+dir.create(saveDir)
+
 tmap::tmap_save(county_and_city_tracts_map,
-                paste(repository_path, "intermediate-data-products/boundary-maps/county_and_city_tracts_map_",state,"_",county,"_",city,"_",year,".png", sep = ""),
+                #paste(repository_path, "intermediate-data-products/boundary-maps/county_and_city_tracts_map_",state,"_",county,"_",city,"_",year,".png", sep = ""),
+                paste0(saveDir,"county_and_city_tracts_map.png"),
                 units = "in",
                 width = 4,
                 height = 6)
@@ -294,4 +319,5 @@ city.tracts.utm$area <-
 # chicago.city.2km.buffer.tracts.spatvect.lonlat <- 
 #   terra::vect(chicago.city.2km.buffer.tracts.sf.lonlat)
 
-save.image(paste0(repository_path,"intermediate-data-products/boundary-maps/get_boundary_maps_",state,"_",county,"_",city,"_",year,".RData"))
+#save.image(paste0(repository_path,"intermediate-data-products/boundary-maps/get_boundary_maps_",state,"_",county,"_",city,"_",year,".RData"))
+save.image(paste0(saveDir,"get_boundary_maps.RData"))
