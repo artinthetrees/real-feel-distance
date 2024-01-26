@@ -1,18 +1,18 @@
-state = "IL"
-county = "Cook"
-city = "Chicago"
-year = 2022
-
-# state = "OR"
-# county = "Multnomah"
-# city = "Portland"
-# year = 2019
-
-
-repository_path <- "C:/Users/tentner-andrea/project_repositories/real-feel-distance/"
-
-crs_lonlat <- "+proj=longlat +datum=NAD83"
-crs_utm <- "+proj=utm +zone=16N +datum=NAD83 +ellps=GRS80"
+# state = "IL"
+# county = "Cook"
+# city = "Chicago"
+# year = 2022
+# 
+# # state = "OR"
+# # county = "Multnomah"
+# # city = "Portland"
+# # year = 2019
+# 
+# 
+# repository_path <- "C:/Users/tentner-andrea/project_repositories/real-feel-distance/"
+# 
+# crs_lonlat <- "+proj=longlat +datum=NAD83"
+# crs_utm <- "+proj=utm +zone=16N +datum=NAD83 +ellps=GRS80"
 
 ##################################################################################################
 # References
@@ -39,7 +39,6 @@ crs_utm <- "+proj=utm +zone=16N +datum=NAD83 +ellps=GRS80"
 # 2) If city is very small compared to the whole containing county the visualization of the city with the 2km buffer within the county is not very useful
 # 3) If city is the same as the containing county (or almost so) the visualization of the city with the 2km buffer within the county is not very useful AND
 ##################################################################################################
-
 
 
 
