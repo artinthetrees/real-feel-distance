@@ -1,5 +1,5 @@
 # secrets 
-/config/my-secret-config-file.R
+/00-config/my-secret-config-file.R
 
 # History files
 .Rhistory
