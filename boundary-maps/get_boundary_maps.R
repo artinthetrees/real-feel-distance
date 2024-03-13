@@ -46,7 +46,7 @@ library(dplyr)
 options(tigris_use_cache = TRUE)
 
 
-
+print(paste("getting census data per tract for the state of: ", state))
 # Bring in census tract data. 
 state.tracts.utm <- 
   tidycensus::get_acs(geography = "tract", 
@@ -125,6 +125,7 @@ state.tracts.utm <-
                       geometry = TRUE) %>%
   sf::st_transform(crs = crs_utm)
 
+print(paste("tidying census data per tract for the state of: ", state))
 # Make the data tidy, calculate percent race/ethnicity, and keep essential vars.
 state.tracts.utm <-
   state.tracts.utm %>% 
@@ -215,16 +216,18 @@ state.tracts.utm <-
          )
 
 
-
+print(paste("getting all city boundary data for the state of: ", state))
 # Bring in city boundary data for the state
 pl <- 
   tigris::places(state = state, cb = TRUE)
 
+print(paste("keeping just the city boundary data for the city of: ", city))
 # Keep just the city of interest - get boundary for city of interest
 city.utm <- 
   dplyr::filter(pl, NAME == city) %>%
   sf::st_transform(crs = crs_utm)
-  
+
+print(paste("getting boundary for 2km buffer around the city of: ", city))
 # Get boundary for 2km buffer around city of interest
 city.2km.buffer.utm <- 
   sf::st_buffer(city.utm, dist = 2000)
