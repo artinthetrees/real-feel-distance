@@ -1,3 +1,6 @@
+# secrets 
+/config/my-secret-config-file.R
+
 # History files
 .Rhistory
 .Rapp.history
