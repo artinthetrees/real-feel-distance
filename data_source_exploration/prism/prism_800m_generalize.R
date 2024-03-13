@@ -18,9 +18,15 @@
 # prism_base_path <- "C:/Users/Andrea/Desktop/prism_daily_data/July_2019/July 2019/"
 # prism_var <- "tmax"
 
+boundary_maps_sub_path <- paste0(state,"_",county,"_",city,"_",year)
+boundary_maps_path <- Gmisc::pathJoin(repository_path,"intermediate-data-products","boundary-maps",boundary_maps_sub_path,"get_boundary_maps.RData")
+
+load(boundary_maps_path)
+
+
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(
-  terra, # handle raster data
+  #terra, # handle raster data
   raster, # handle raster data
   exactextractr, # fast extractions
   sf, # vector data operations
