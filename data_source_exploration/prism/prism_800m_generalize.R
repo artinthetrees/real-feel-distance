@@ -15,8 +15,8 @@
 # vpdmax:	Daily maximum vapor pressure deficit
 
 #repository_path <- "C:/Users/Andrea/Desktop/repositories/real-feel-distance/"
-prism_base_path <- "C:/Users/Andrea/Desktop/prism_daily_data/July_2019/July 2019/"
-prism_var <- "tmax"
+# prism_base_path <- "C:/Users/Andrea/Desktop/prism_daily_data/July_2019/July 2019/"
+# prism_var <- "tmax"
 
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(
@@ -35,10 +35,22 @@ pacman::p_load(
 
 
 prism_base_path <- "P:/LABO.10.32/Common/prism-climate-data/"
+print(prism_base_path)
+dir1 <- list.dirs(path=prism_base_path, recursive = FALSE)
+print(dir1)
 
-dirs <- list.dirs(path=prism_base_path)
+dir2 <- dir1[ grepl(prism_var, basename(dir1)) ]
+print(dir2)
 
-dirs_sub <- dirs[ grepl("2019", basename(dirs)) ]
+finalDir <- Gmisc::pathJoin(dir2,prism_var,"daily",year)
+print(finalDir)
+
+prism_files <- 
+  list.files(path = finalDir, 
+             pattern = ".bil$",
+             full.names = TRUE)
+print(prism_files)
+
 
 
 # {
@@ -58,11 +70,11 @@ dirs_sub <- dirs[ grepl("2019", basename(dirs)) ]
 # }
 
 
-#--- the file name of the PRISM data just downloaded ---#
-prism_files <- 
-  list.files(path = paste0(prism_base_path,prism_var,"/"), pattern = ".bil$",
-             full.names = TRUE)
-#prism_file <- prism_files[1]
+# #--- the file name of the PRISM data just downloaded ---#
+# prism_files <- 
+#   list.files(path = paste0(prism_base_path,prism_var,"/"), pattern = ".bil$",
+#              full.names = TRUE)
+# #prism_file <- prism_files[1]
 
 city.prism_var_by_tract.mean.list <- list()
 city.prism_var_by_tract.aw_mean.list <- list()
@@ -77,6 +89,7 @@ for (p in 1:length(prism_files)){
   print(paste0("p = ",p))
   
   prism_file <- prism_files[p]
+  print(prism_file)
   #--- read in the prism data ---#
   prism_rast <- terra::rast(prism_file)
   
