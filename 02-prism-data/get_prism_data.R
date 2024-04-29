@@ -21,8 +21,14 @@
 # sub_path <- paste0(state,"_",county,"_",city,"_",year)
 
 # boundary_maps_path <- Gmisc::pathJoin(repository_path,"intermediate-data-products","01-boundary-maps",sub_path,"get_boundary_maps.RData")
- 
-load(boundary_maps_path)
+if (!exists("city.tracts.utm")) {
+  print("boundary maps need to be loaded - loading now!")
+  load(boundary_maps_path)
+} else {
+  print("boundary maps already loaded - continuing without loading!")
+}
+
+
 
 # prism_output_dir <- Gmisc::pathJoin(repository_path,"intermediate-data-products","02-prism-data")
 # ifelse(!dir.exists(prism_output_dir), dir.create(prism_output_dir), FALSE)
