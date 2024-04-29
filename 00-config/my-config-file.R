@@ -5,7 +5,7 @@ repository_path <- "C:/Users/tentner-andrea/project_repositories/real-feel-dista
 prism_base_path <- "P:/LABO.10.32/Common/prism-climate-data/"
 #-----------------------------------
 prism_var <- "tmax"
-
+#-----------------------------------
 state <- "IL"
 county <- "Cook"
 city <- "Chicago"
@@ -14,6 +14,35 @@ year <- 2020
 
 county_string <- paste(county,"County")
 state_string <- state
+
+#-----------------------------------
+
+sub_path <- paste0(state,"_",county,"_",city,"_",year)
+
+#-----------------------------------
+
+boundary_maps_output_dir <- Gmisc::pathJoin(repository_path,"intermediate-data-products","01-boundary-maps")
+ifelse(!dir.exists(boundary_maps_output_dir), dir.create(boundary_maps_output_dir), FALSE)
+
+boundary_maps_output_sub_dir <- Gmisc::pathJoin(boundary_maps_output_dir,sub_path)
+ifelse(!dir.exists(boundary_maps_output_sub_dir), dir.create(boundary_maps_output_sub_dir), FALSE) 
+
+boundary_maps_output_path <- Gmisc::pathJoin(boundary_maps_output_sub_dir,"get_boundary_maps.RData")
+
+#-----------------------------------
+
+prism_output_dir <- Gmisc::pathJoin(repository_path,"intermediate-data-products","02-prism-data")
+ifelse(!dir.exists(prism_output_dir), dir.create(prism_output_dir), FALSE)
+
+prism_output_sub_dir <- Gmisc::pathJoin(prism_output_dir,sub_path)
+ifelse(!dir.exists(prism_output_sub_dir), dir.create(prism_output_sub_dir), FALSE)
+
+prism_output_file_name <- paste0("get_prism_data_",prism_var,".RData")
+
+#prism_output_path <- Gmisc::pathJoin(prism_output_sub_dir,"get_prism_data.RData")
+prism_output_path <- Gmisc::pathJoin(prism_output_sub_dir,prism_output_file_name)
+
+#-----------------------------------
 
 tidycensus::census_api_key(my_census_api_key)
 
