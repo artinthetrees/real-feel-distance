@@ -165,6 +165,7 @@ for (p in 1:length(prism_files)){
     terra::extract(prism_rast.city.tracts.lonlat, 
                    city.tracts.spatvect.lonlat, 
                    exact = TRUE) 
+
   
   city.2km.buffer.prism_var_by_tract <- 
     terra::extract(prism_rast.city.2km.buffer.tracts.lonlat, 
@@ -180,8 +181,11 @@ for (p in 1:length(prism_files)){
   city.prism_var_by_tract.mean <- 
     city.prism_var_by_tract %>%
     group_by(ID) %>%
-    summarize(prism_var = mean(!!my_var),
-              aw_prism_var = sum(fraction * !!my_var)/sum(fraction))
+    summarize(
+      prism_var = mean(!!my_var),
+      aw_prism_var = weighted.mean(!!my_var,fraction)
+      #aw_prism_var = sum(fraction * !!my_var)/sum(fraction)
+      )
   
   city.prism_var_by_tract.mean.list[[p]] <- city.prism_var_by_tract.mean$prism_var
   city.prism_var_by_tract.aw_mean.list[[p]] <- city.prism_var_by_tract.mean$aw_prism_var
@@ -189,8 +193,11 @@ for (p in 1:length(prism_files)){
   city.2km.buffer.prism_var_by_tract.mean <- 
     city.2km.buffer.prism_var_by_tract %>%
     group_by(ID) %>%
-    summarize(prism_var = mean(!!my_var),
-              aw_prism_var = sum(fraction * !!my_var)/sum(fraction))
+    summarize(
+      prism_var = mean(!!my_var),
+      aw_prism_var = weighted.mean(!!my_var,fraction)
+      #aw_prism_var = sum(fraction * !!my_var)/sum(fraction)
+      )
   
   city.2km.buffer.prism_var_by_tract.mean.list[[p]] <- city.2km.buffer.prism_var_by_tract.mean$prism_var
   city.2km.buffer.prism_var_by_tract.aw_mean.list[[p]] <- city.2km.buffer.prism_var_by_tract.mean$aw_prism_var
