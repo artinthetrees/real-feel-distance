@@ -291,12 +291,13 @@ tmap::tm_shape(county.tracts.utm) +
   tmap::tm_shape(city.tracts.utm) +
   tmap::tm_polygons()
 
-saveDir = paste0(repository_path,"intermediate-data-products/boundary-maps/",state,"_",county,"_",city,"_",year,"/")
-dir.create(saveDir)
+#saveDir = paste0(repository_path,"intermediate-data-products/01-boundary-maps/",state,"_",county,"_",city,"_",year,"/")
+#dir.create(saveDir)
 
 tmap::tmap_save(county_and_city_tracts_map,
                 #paste(repository_path, "intermediate-data-products/boundary-maps/county_and_city_tracts_map_",state,"_",county,"_",city,"_",year,".png", sep = ""),
-                paste0(saveDir,"county_and_city_tracts_map.png"),
+                #paste0(boundary_maps_output_sub_dir,"county_and_city_tracts_map.png"),
+                Gmisc::pathJoin(boundary_maps_output_sub_dir,"county_and_city_tracts_map.png")
                 units = "in",
                 width = 4,
                 height = 6)
@@ -322,4 +323,7 @@ city.tracts.utm$area <-
 #   terra::vect(chicago.city.2km.buffer.tracts.sf.lonlat)
 
 #save.image(paste0(repository_path,"intermediate-data-products/boundary-maps/get_boundary_maps_",state,"_",county,"_",city,"_",year,".RData"))
-save.image(paste0(saveDir,"get_boundary_maps.RData"))
+#save.image(paste0(saveDir,"get_boundary_maps.RData"))
+save.image(boundary_maps_output_path)
+
+

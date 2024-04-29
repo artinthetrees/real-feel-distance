@@ -18,18 +18,19 @@
 # prism_base_path <- "C:/Users/Andrea/Desktop/prism_daily_data/July_2019/July 2019/"
 # prism_var <- "tmax"
 
-sub_path <- paste0(state,"_",county,"_",city,"_",year)
+# sub_path <- paste0(state,"_",county,"_",city,"_",year)
 
-boundary_maps_path <- Gmisc::pathJoin(repository_path,"intermediate-data-products","boundary-maps",sub_path,"get_boundary_maps.RData")
+# boundary_maps_path <- Gmisc::pathJoin(repository_path,"intermediate-data-products","01-boundary-maps",sub_path,"get_boundary_maps.RData")
+ 
 load(boundary_maps_path)
 
-prism_output_dir <- Gmisc::pathJoin(repository_path,"intermediate-data-products","prism-data")
-ifelse(!dir.exists(prism_output_dir), dir.create(prism_output_dir), FALSE)
+# prism_output_dir <- Gmisc::pathJoin(repository_path,"intermediate-data-products","02-prism-data")
+# ifelse(!dir.exists(prism_output_dir), dir.create(prism_output_dir), FALSE)
 
-prism_output_sub_dir <- Gmisc::pathJoin(prism_output_dir,sub_path)
-ifelse(!dir.exists(prism_output_sub_dir), dir.create(prism_output_sub_dir), FALSE)
+# prism_output_sub_dir <- Gmisc::pathJoin(prism_output_dir,sub_path)
+# ifelse(!dir.exists(prism_output_sub_dir), dir.create(prism_output_sub_dir), FALSE)
 
-prism_output_path <- Gmisc::pathJoin(prism_output_sub_dir,"get_prism_data.RData")
+# prism_output_path <- Gmisc::pathJoin(prism_output_sub_dir,"get_prism_data.RData")
 
 
 
@@ -52,8 +53,8 @@ pacman::p_load(
 )
 
 
-prism_base_path <- "P:/LABO.10.32/Common/prism-climate-data/"
-print(prism_base_path)
+# prism_base_path <- "P:/LABO.10.32/Common/prism-climate-data/"
+# print(prism_base_path)
 dir1 <- list.dirs(path=prism_base_path, recursive = FALSE)
 print(dir1)
 
@@ -69,7 +70,7 @@ prism_files <-
              full.names = TRUE)
 print(prism_files)
 
-prism_files <- prism_files[c(1:10)]
+#prism_files <- prism_files[c(1:10)]
 
 
 
