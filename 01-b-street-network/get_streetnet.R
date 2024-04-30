@@ -56,9 +56,9 @@
 #   dodgr::dodgr_streetnet(bbox = chicago.city.buffer.bbox)
 
 
-source("C:/Users/tentner-andrea/project_repositories/real-feel-distance/01-b-street-network/dodgr_streetnet_update.R")
-source("C:/Users/tentner-andrea/project_repositories/real-feel-distance/01-b-street-network/osmdata_utils.R")
-test_sf <- dodgr_streetnet_update("chicago",datetime = "2020-06-01T00:00:00Z")
+source("C:/Users/tentner-andrea/project_repositories/real-feel-distance/01-b-street-network/utils_dodgr.R")
+source("C:/Users/tentner-andrea/project_repositories/real-feel-distance/01-b-street-network/utils_osmdata.R")
+
 
 
 #nominatim_polygon <- nominatimlite::geo_lite_sf(address = "Chicago, Illinois", points_only = FALSE)
