@@ -23,7 +23,7 @@
 # boundary_maps_path <- Gmisc::pathJoin(repository_path,"intermediate-data-products","01-boundary-maps",sub_path,"get_boundary_maps.RData")
 if (!exists("city.tracts.utm")) {
   print("boundary maps need to be loaded - loading now!")
-  load(boundary_maps_path)
+  load(boundary_maps_output_path)
 } else {
   print("boundary maps already loaded - continuing without loading!")
 }
@@ -220,7 +220,7 @@ names(city.2km.buffer.prism_var_by_tract.aw_mean.df) <- my_vars_clean
 city.prism_var_by_tract.mean.summary.df <-
   gather(city.prism_var_by_tract.mean.df) %>%
   group_by(key) %>%
-  summarize(across(.fns = list(mean=mean,min=min,max=max))) %>%
+  summarize(across(,.fns = list(mean=mean,min=min,max=max))) %>%
   mutate(max_f = weathermetrics::celsius.to.fahrenheit(value_max),
          min_f = weathermetrics::celsius.to.fahrenheit(value_min),
          range_f = max_f - min_f)
@@ -228,7 +228,7 @@ city.prism_var_by_tract.mean.summary.df <-
 city.prism_var_by_tract.aw_mean.summary.df <-
   gather(city.prism_var_by_tract.aw_mean.df) %>%
   group_by(key) %>%
-  summarize(across(.fns = list(mean=mean,min=min,max=max))) %>%
+  summarize(across(,.fns = list(mean=mean,min=min,max=max))) %>%
   mutate(max_f = weathermetrics::celsius.to.fahrenheit(value_max),
          min_f = weathermetrics::celsius.to.fahrenheit(value_min),
          range_f = max_f - min_f)
