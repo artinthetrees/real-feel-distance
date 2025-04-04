@@ -4,7 +4,8 @@ library(dplyr)
 repository_path <- "C:/Users/tentner-andrea/project_repositories/real-feel-distance/"
 prism_base_path <- "P:/LABO.10.32/Common/prism-climate-data/"
 #-----------------------------------
-prism_var <- "tmax"
+#prism_var <- "tmax"
+prism_var <- "tdmean"
 #-----------------------------------
 state <- "IL"
 county <- "Cook"
@@ -21,13 +22,23 @@ sub_path <- paste0(state,"_",county,"_",city,"_",year)
 
 #-----------------------------------
 
-boundary_maps_output_dir <- Gmisc::pathJoin(repository_path,"intermediate-data-products","01-boundary-maps")
+boundary_maps_output_dir <- Gmisc::pathJoin(repository_path,"intermediate-data-products","01-a-boundary-maps")
 ifelse(!dir.exists(boundary_maps_output_dir), dir.create(boundary_maps_output_dir), FALSE)
 
 boundary_maps_output_sub_dir <- Gmisc::pathJoin(boundary_maps_output_dir,sub_path)
 ifelse(!dir.exists(boundary_maps_output_sub_dir), dir.create(boundary_maps_output_sub_dir), FALSE) 
 
 boundary_maps_output_path <- Gmisc::pathJoin(boundary_maps_output_sub_dir,"get_boundary_maps.RData")
+
+#-----------------------------------
+
+streetnet_output_dir <- Gmisc::pathJoin(repository_path,"intermediate-data-products","01-b-street-network")
+ifelse(!dir.exists(streetnet_output_dir), dir.create(streetnet_output_dir), FALSE)
+
+streetnet_output_sub_dir <- Gmisc::pathJoin(streetnet_output_dir,sub_path)
+ifelse(!dir.exists(streetnet_output_sub_dir), dir.create(streetnet_output_sub_dir), FALSE) 
+
+streetnet_output_path <- Gmisc::pathJoin(streetnet_output_sub_dir,"get_streetnet.RData")
 
 #-----------------------------------
 
@@ -42,6 +53,15 @@ prism_output_file_name <- paste0("get_prism_data_",prism_var,".RData")
 #prism_output_path <- Gmisc::pathJoin(prism_output_sub_dir,"get_prism_data.RData")
 prism_output_path <- Gmisc::pathJoin(prism_output_sub_dir,prism_output_file_name)
 
+#-----------------------------------
+
+raw_distance_output_dir <- Gmisc::pathJoin(repository_path,"intermediate-data-products","02-raw-distance")
+ifelse(!dir.exists(raw_distance_output_dir), dir.create(raw_distance_output_dir), FALSE)
+
+raw_distance_output_sub_dir <- Gmisc::pathJoin(raw_distance_output_dir,sub_path)
+ifelse(!dir.exists(raw_distance_output_sub_dir), dir.create(raw_distance_output_sub_dir), FALSE) 
+
+raw_distance_output_path <- Gmisc::pathJoin(raw_distance_output_sub_dir,"get_raw_distance.RData")
 #-----------------------------------
 
 tidycensus::census_api_key(my_census_api_key)
