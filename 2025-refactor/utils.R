@@ -1,10 +1,13 @@
 library(tidyverse)
+#library(tidycensus)
+
+tidycensus::census_api_key(my_census_api_key)
 
 get_utm_zone <- function(my_census_api_key,county_string,state_string,year_num){
-    tidycensus::census_api_key(my_census_api_key)
-
+    
     fips_cd_df <-
         tidycensus::fips_codes %>%
+        #get(data(fips_codes)) %>%
         filter(county == county_string & state == state_string)
 
     county_fips_cd <- sprintf("%03s", (fips_cd_df[1, "county_code"]))
