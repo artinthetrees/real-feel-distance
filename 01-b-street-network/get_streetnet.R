@@ -57,7 +57,7 @@
 
 
 source("C:/Users/tentner-andrea/project_repositories/real-feel-distance/01-b-street-network/utils_dodgr.R")
-source("C:/Users/tentner-andrea/project_repositories/real-feel-distance/01-b-street-network/utils_osmdata.R")
+#source("C:/Users/tentner-andrea/project_repositories/real-feel-distance/01-b-street-network/utils_osmdata.R")
 
 
 
@@ -65,11 +65,14 @@ source("C:/Users/tentner-andrea/project_repositories/real-feel-distance/01-b-str
 #bbox <- sf::st_bbox(nominatim_polygon)
 
 #dat_sf <- dodgr::dodgr_streetnet(bbox=bbox) 
+bb_place = tolower(city)
 
-hi = osmdata::getbb("chicago")
-queue <- split_bbox (hi,grid=4)
-dat_sf_2020_1 <- dodgr_streetnet_update(bbox = queue[[1]], datetime = "2020-06-01T00:00:00Z")
-dat_sf_2020_2 <- dodgr_streetnet_update(bbox = queue[[2]], datetime = "2020-06-01T00:00:00Z")
+bb = osmdata::getbb("chicago")
+#queue <- split_bbox (hi,grid=4)
+dat_sf <- dodgr_streetnet_update(bbox = bb, datetime = "2020-06-01T00:00:00Z")
+#dat_sf_2020_1 <- dodgr_streetnet_update(bbox = queue[[1]], datetime = "2020-06-01T00:00:00Z")
+#dat_sf_2020_2 <- dodgr_streetnet_update(bbox = queue[[2]], datetime = "2020-06-01T00:00:00Z")
+
 
 graph <- dodgr::weight_streetnet (dat_sf, wt_profile = "foot")
 
@@ -81,7 +84,7 @@ sf::st_crs(dat_sf)$units
 
 dat_sf.utm <-
   sf::st_transform(dat_sf, 
-                   crs = "+proj=utm +zone=16N +datum=NAD83 +ellps=GRS80") 
+                   crs = crs_utm) 
 
 sf::st_crs(dat_sf.utm)$proj4string
 
