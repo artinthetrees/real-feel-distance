@@ -1,8 +1,8 @@
 my_font_size <- 10
 options(tigris_use_cache = TRUE)
 
-install_census_api_key <- TRUE
-overwrite_existing_census_api_key <- TRUE
+#install_census_api_key <- TRUE
+#overwrite_existing_census_api_key <- TRUE
 
 state_string <- "IL"
 county_string <- "Cook County"
