@@ -1,9 +1,22 @@
 library(tidyverse)
-#library(tidycensus)
+
 
 tidycensus::census_api_key(my_census_api_key)
 
-get_utm_zone <- function(my_census_api_key,county_string,state_string,year_num){
+#get_full_streetnet_lonlat <- function(state_string, city_string, year_num){
+get_full_streetnet_lonlat <- function(state_string, city_string){
+  place_bb <- osmdata::getbb(place_name=paste(city_string,state_string,sep=", "), featuretype = "city")
+  print(place_bb)
+  
+  #datetime_string <- paste0(as.character(year_num),"-06-01T00:00:00Z") # default to june 1 of the specified year
+  #print(datetime_string)
+  
+  #raw_streetnet <- dodgr_streetnet_update(bbox = place_bb, expand = 0.05, datetime = datetime_string)
+  raw_streetnet <- dodgr::dodgr_streetnet(bbox = place_bb, expand = 0.05)
+  return(raw_streetnet)
+}
+
+get_crs <- function(my_census_api_key,county_string,state_string,year_num,crs_datum){
     
     fips_cd_df <-
         tidycensus::fips_codes %>%
@@ -28,10 +41,8 @@ get_utm_zone <- function(my_census_api_key,county_string,state_string,year_num){
     county_utm_zone <- floor((county_centroid_lon + 180) / 6) + 1
 
     #-----------------------------------
-    crs_lonlat <- "+proj=longlat +datum=NAD83"
-    #crs_utm <- "+proj=utm +zone=16N +datum=NAD83 +ellps=GRS80"
-    #utm_zone <- ggmap::geocode(city)
-    crs_utm <- paste0("+proj=utm +zone=",as.character(county_utm_zone)," +datum=NAD83")
+    crs_lonlat <- paste0("+proj=longlat +datum=",crs_datum)
+    crs_utm <- paste0("+proj=utm +zone=",as.character(county_utm_zone)," +datum=",crs_datum)
 
     return(list(crs_lonlat=crs_lonlat, crs_utm=crs_utm, county_utm_zone=county_utm_zone))
 }

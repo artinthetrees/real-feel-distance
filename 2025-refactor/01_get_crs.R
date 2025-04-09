@@ -6,11 +6,12 @@
 # source("./secrets.R")
 # source("./utils.R")
 
-crs_data <- get_utm_zone(
+crs_data <- get_crs(
     my_census_api_key = my_census_api_key,
     county_string = county_string,
     state_string = state_string,
-    year_num = year_num
+    year_num = year_num,
+    crs_datum = crs_datum
 )
 
 print(crs_data)
