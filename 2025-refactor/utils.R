@@ -3,6 +3,13 @@ library(tidyverse)
 
 tidycensus::census_api_key(my_census_api_key)
 
+get_obj_from_rdata <- function(rdata_file_path,obj_name){
+  attach(rdata_file_path)
+  obj <- obj_name
+  detach()
+  return(obj)
+}
+
 #get_full_streetnet_lonlat <- function(state_string, city_string, year_num){
 get_full_streetnet_lonlat <- function(state_string, city_string){
   place_bb <- osmdata::getbb(place_name=paste(city_string,state_string,sep=", "), featuretype = "city")
