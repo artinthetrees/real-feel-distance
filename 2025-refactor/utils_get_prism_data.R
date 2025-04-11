@@ -1,3 +1,5 @@
+library(tidyverse)
+
 # prism data:
 
 # Parameter name	Description
@@ -78,11 +80,11 @@ get_prism_crs <- function(prism_file){
   return(prism_crs)
 }
 
-get_prism_per_boundary <- function(prism_file_list,prism_crs,boundary_map,return_type="minimal"){
+get_prism_per_boundary <- function(prism_file_list,boundary_map,return_type="verbose",output_path=NULL){
   
   # convert boundary map to prism crs to ensure compatibility
-  prism_crs <- get_prism_crs(prism_file = prism_file_list[1])
-  boundary_map <- boundary_map %>% sf::st_transform(crs = prism_crs)
+  ref_prism_file <- terra::rast(prism_file_list[1])
+  boundary_map <- boundary_map %>% sf::st_transform(terra::crs(ref_prism_file))
   boundary_map_spatvect <- terra::vect(boundary_map)
   
   prism_rast_boundary_extent.list <- list()
@@ -94,10 +96,10 @@ get_prism_per_boundary <- function(prism_file_list,prism_crs,boundary_map,return
   my_vars <- c()
   my_vars.list <- list()
   
-  for (p in 1:length(prism_files)){
+  for (p in 1:length(prism_file_list)){
     
     print(paste0("p = ",p))
-    prism_file <- prism_files[p]
+    prism_file <- prism_file_list[p]
     print(prism_file)
     
     # read in the prism file as raster
@@ -145,6 +147,18 @@ get_prism_per_boundary <- function(prism_file_list,prism_crs,boundary_map,return
   names(prism_by_boundary.mean.df) <- my_vars_clean
   names(prism_by_boundary.aw_mean.df) <- my_vars_clean
   
+  if (!is.null(output_path)){
+    save(
+      prism_by_boundary.mean.df,
+      prism_by_boundary.aw_mean.df,
+      prism_rast_boundary_extent.list,
+      prism_by_boundary.list,
+      prism_by_boundary.meanANDaw_mean.list,
+      prism_by_boundary.mean.list,
+      prism_by_boundary.aw_mean.list,
+      file = output_path)
+  }
+  
   if (return_type == "verbose"){
     return(list(
       prism_by_boundary.mean.df=prism_by_boundary.mean.df,
@@ -168,7 +182,6 @@ get_prism_per_boundary <- function(prism_file_list,prism_crs,boundary_map,return
   }
   
 }
-
 
 ##################################################################
 ##################################################################
