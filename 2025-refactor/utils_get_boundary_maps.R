@@ -2,7 +2,7 @@ library(tidyverse)
 library(ggplot2)
 library(patchwork)
 
-get_boundary_maps <- function(output_path,year_num,state_string,county_string,city_string){
+get_boundary_maps <- function(city_string, county_string, state_string, year_num, crs_utm, output_path, my_font_size=10){
   
   states.utm <- 
     tigris::states(cb=TRUE, year=year_num, resolution="20m") %>%
@@ -196,7 +196,46 @@ get_boundary_maps <- function(output_path,year_num,state_string,county_string,ci
       tag_levels = "A"
     )
   
-  save.image(output_path)
+  if (!is.null(output_path)){
+    #save.image(output_path)
+    save(
+      states.utm,
+      state.utm,
+      states.within.state.2km.buffer,
+      states.within.state.2km.buffer.utm,
+      city.utm,
+      city.2km.buffer.utm,
+      states.within.city.2km.buffer,
+      states.within.city.2km.buffer.utm,
+      counties.within.city.2km.buffer,
+      counties.within.city.2km.buffer.utm,
+      tracts.within.city.2km.buffer,
+      tracts.within.city.2km.buffer.utm,
+      tracts.within.city,
+      tracts.within.city.utm,
+      file = output_path)
+  }
+  
+  values <- Hmisc::llist(
+    states.utm,
+    state.utm,
+    states.within.state.2km.buffer,
+    states.within.state.2km.buffer.utm,
+    city.utm,
+    city.2km.buffer.utm,
+    states.within.city.2km.buffer,
+    states.within.city.2km.buffer.utm,
+    counties.within.city.2km.buffer,
+    counties.within.city.2km.buffer.utm,
+    tracts.within.city.2km.buffer,
+    tracts.within.city.2km.buffer.utm,
+    tracts.within.city,
+    tracts.within.city.utm
+  )
+  
+  # values = as.list(environment())
+  # values = values[setdiff(names(values), names(formals()))]
+  return(values)
   
 }
 

@@ -1,9 +1,14 @@
 library(tidyverse)
 
-
 tidycensus::census_api_key(my_census_api_key)
 
-get_obj_from_rdata <- function(rdata_file_path,obj_name){
+
+get_city_year_output_filename <- function(city_string,year_num,save_file_type="Rdata"){
+  fname <- paste0(city_string,"_",as.character(year_num),".",save_file_type)
+  return(fname)
+}
+
+get_obj_from_rdata <- function(rdata_file_path,obj_name=NULL){
   attach(rdata_file_path)
   obj <- obj_name
   detach()
@@ -23,36 +28,36 @@ get_full_streetnet_lonlat <- function(state_string, city_string){
   return(raw_streetnet)
 }
 
-get_crs <- function(my_census_api_key,county_string,state_string,year_num,crs_datum){
-    
-    fips_cd_df <-
-        tidycensus::fips_codes %>%
-        #get(data(fips_codes)) %>%
-        filter(county == county_string & state == state_string)
-
-    county_fips_cd <- sprintf("%03s", (fips_cd_df[1, "county_code"]))
-    state_fips_cd <- sprintf("%02s", fips_cd_df[1, "state_code"])
-
-    county_centroid <- 
-        tigris::counties(state = state_string, resolution = "20m", year = year_num) %>%
-        sf::st_centroid() %>%
-        filter(COUNTYFP == county_fips_cd)
-
-    county_centroid <- 
-        county_centroid %>%
-        mutate(lat = unlist(purrr::map(county_centroid$geometry,2)),
-            lon = unlist(purrr::map(county_centroid$geometry,1))) %>% 
-        sf::st_drop_geometry()
-
-    county_centroid_lon <- county_centroid[1,"lon"] 
-    county_utm_zone <- floor((county_centroid_lon + 180) / 6) + 1
-
-    #-----------------------------------
-    crs_lonlat <- paste0("+proj=longlat +datum=",crs_datum)
-    crs_utm <- paste0("+proj=utm +zone=",as.character(county_utm_zone)," +datum=",crs_datum)
-
-    return(list(crs_lonlat=crs_lonlat, crs_utm=crs_utm, county_utm_zone=county_utm_zone))
-}
+# get_crs <- function(my_census_api_key,county_string,state_string,year_num,crs_datum){
+#     
+#     fips_cd_df <-
+#         tidycensus::fips_codes %>%
+#         #get(data(fips_codes)) %>%
+#         filter(county == county_string & state == state_string)
+# 
+#     county_fips_cd <- sprintf("%03s", (fips_cd_df[1, "county_code"]))
+#     state_fips_cd <- sprintf("%02s", fips_cd_df[1, "state_code"])
+# 
+#     county_centroid <- 
+#         tigris::counties(state = state_string, resolution = "20m", year = year_num) %>%
+#         sf::st_centroid() %>%
+#         filter(COUNTYFP == county_fips_cd)
+# 
+#     county_centroid <- 
+#         county_centroid %>%
+#         mutate(lat = unlist(purrr::map(county_centroid$geometry,2)),
+#             lon = unlist(purrr::map(county_centroid$geometry,1))) %>% 
+#         sf::st_drop_geometry()
+# 
+#     county_centroid_lon <- county_centroid[1,"lon"] 
+#     county_utm_zone <- floor((county_centroid_lon + 180) / 6) + 1
+# 
+#     #-----------------------------------
+#     crs_lonlat <- paste0("+proj=longlat +datum=",crs_datum)
+#     crs_utm <- paste0("+proj=utm +zone=",as.character(county_utm_zone)," +datum=",crs_datum)
+# 
+#     return(list(crs_lonlat=crs_lonlat, crs_utm=crs_utm, county_utm_zone=county_utm_zone))
+# }
 
 get_lonlat_points_within_boundary <- function(points_df,lat_var, lon_var,boundary_map_in_utm,crs_lonlat, crs_utm){
 
