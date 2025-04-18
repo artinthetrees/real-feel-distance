@@ -1,105 +1,98 @@
-#https://github.com/GIScience/ohsome-r
+#################################################################
+# list all objs in workspace at start
 
-library(ohsome)
+ws_objs <- ls()
 
-hd_test_2 <- 
-ohsome_elements_geometry(
-  boundary = place_bb, 
-  filter = "highway=* and type:way", 
-  time = "2021-12-01",
-  properties = "tags", 
-  clipGeometry = FALSE
-) |>
-  ohsome_post()
+#################################################################
+# define outpath for this step
 
-hd_test_3 <- 
-  ohsome_elements_geometry(
-    boundary = place_bb, 
-    filter = "highway=*", 
-    time = "2021-12-01",
-    properties = "tags", 
-    clipGeometry = FALSE
-  ) |>
-  ohsome_post()
+output_path <- Gmisc::pathJoin(output_dir,"intermediate","street_network",city_output_fname)
+print(output_path)
 
-hd_test_4 <- 
-  ohsome_elements_geometry(
-    boundary = place_bb, 
-    filter = "highway=*", 
-    time = "2025-02-02",
-    properties = "tags", 
-    clipGeometry = FALSE
-  ) |>
-  ohsome_post()
-hd_test_4_sub <- hd_test_4 %>% select("@osmId",name,highway,paved,smoothness,lit,type,geometry)
-hd_test_4_process <- hd_test_4_sub %>% rename(osm_id = "@osmId") %>% rowwise() %>% mutate(osm_id = str_split(osm_id,"/")) %>% rowwise() %>% mutate(osm_id = osm_id[2])
+#################################################################
+# pull in objs needed from previous parts of pipeline for this step
 
-hd_test_5 <- 
-  ohsome_elements_geometry(
-    boundary = place_bb, 
-    filter = "highway=* and type:way", 
-    time = "2025-02-02",
-    properties = "tags", 
-    clipGeometry = FALSE
-  ) |>
-  ohsome_post()
-hd_test_5_sub <- hd_test_5 %>% select("@osmId",name,highway,paved,smoothness,lit,type,geometry)
-hd_test_5_process <- hd_test_5_sub %>% rename(osm_id = "@osmId") %>% rowwise() %>% mutate(osm_id = str_split(osm_id,"/")) %>% rowwise() %>% mutate(osm_id = osm_id[2])
+crs_utm <- get_obj_from_rdata(rdata_file_path = Gmisc::pathJoin(output_dir,"intermediate","crs",city_year_output_fname),obj_name = crs_utm)
+crs_lonlat <- get_obj_from_rdata(rdata_file_path = Gmisc::pathJoin(output_dir,"intermediate","crs",city_year_output_fname),obj_name = crs_lonlat)
 
-hd_test_6 <- 
-  ohsome_elements_geometry(
-    boundary = city.2km.buffer.utm, 
-    filter = "highway=* and type:way", 
-    time = "2025-02-02",
-    properties = "tags", 
-    clipGeometry = FALSE
-  ) |>
-  ohsome_post()
-hd_test_5_sub <- hd_test_5 %>% select("@osmId",name,highway,paved,smoothness,lit,type,geometry)
-hd_test_5_process <- hd_test_5_sub %>% rename(osm_id = "@osmId") %>% rowwise() %>% mutate(osm_id = str_split(osm_id,"/")) %>% rowwise() %>% mutate(osm_id = osm_id[2])
+print(crs_utm)
+print(crs_lonlat)
 
+boundary.utm <- 
+  get_obj_from_rdata(
+    rdata_file_path = Gmisc::pathJoin(output_dir,"intermediate","boundary_maps",city_year_output_fname),
+    obj_name = city.2km.buffer.utm
+    )
 
-test_streetnet_sub <- test_streetnet %>% select(osm_id,name,highway,paved,smoothness,lit,type,geometry)
+#################################################################
+# work for this step
 
+boundary.lonlat <- boundary.utm %>% sf::st_transform(crs=crs_lonlat)
+
+# create bounding box vector of coordinates from boundary lonlat sf - named vector in xmin, ymin, xmax, ymax order
+sf_bb <- sf::st_bbox(boundary.lonlat)
+
+# convert bounding box vector of coordinates to sf >> input to ohsome streetnet fx
+sf_bb_to_sf <- bbox_coords_to_sf(bbox_coords = sf_bb,crs=crs_lonlat)
+
+# convert bounding box vector of coordinates to osmdata bounding box matrix format >> input to dodgr streetnet fx
+sf_bb_to_osmdata_bb <- bbox_coords_to_osmdata_bb(bbox_coords = sf_bb)
+
+streetnet_query_date <- Sys.Date()
+streetnet_sf.lonlat <- get_streetnet_sf_dodgr(osmdata_bb = sf_bb_to_osmdata_bb, expand = 0)
+
+#################################################################
+# save for this step
+
+save(
+  sf_bb,
+  sf_bb_to_sf,
+  sf_bb_to_osmdata_bb,
+  streetnet_query_date,
+  streetnet_sf.lonlat,
+  file = output_path
+)
+
+#################################################################
+# clean up workspace - remove any objs created during this step
+
+rm(list = setdiff(ls(),ws_objs))
+
+#################################################################
 
 
+# streetnet_ohsome_latest <- get_streetnet_sf_ohsome(boundary_map = sf_bb_to_sf)
+# save(
+#   streetnet_ohsome_latest,
+#   file = "./2025-refactor/chicago_streetnet_ohsome_latest.Rdata"
+# )
 
-
-
-place_bb <- osmdata::getbb(place_name=paste(city_string,state_string,sep=", "), featuretype = "city")
-print(place_bb)
-
-test_streetnet <- dodgr::dodgr_streetnet(bbox = place_bb, expand = 0.05)
-test_streetnet_geometry <- test_streetnet %>% select(osm_id,name,highway,geometry) 
-test_streetnet_geometry.utm <- test_streetnet_geometry %>% sf::st_transform(crs=crs_utm)
-
-check.streetnet.cover.city.2km.buffer.plot <- ggplot() + geom_sf(data=test_streetnet_geometry.utm) + geom_sf(data=city.2km.buffer.utm, fill=NA, color="red") + geom_sf(data=counties.within.city.2km.buffer.utm, fill=NA, color="yellow")
-
-streetnet.clipped.by.city.2km.buffer.utm <- 
-  rmapshaper::ms_clip(target=test_streetnet_geometry.utm, clip=city.2km.buffer.utm, remove_slivers = FALSE)
-
-check.clipped.streetnet.cover.city.2km.buffer.plot <- ggplot() + geom_sf(data=streetnet.clipped.by.city.2km.buffer.utm) + geom_sf(data=city.2km.buffer.utm, fill=NA, color="red") + geom_sf(data=counties.within.city.2km.buffer.utm, fill=NA, color="yellow")
-
-########################################################################
-
-
-streetnet.lonlat <- dodgr_streetnet_update(bbox = place_bb, datetime = "2020-06-01T00:00:00Z")
-
-
-graph <- dodgr::weight_streetnet (dat_sf, wt_profile = "foot")
-
-v <- dodgr::dodgr_vertices (graph)
-head (v)
-
-sf::st_crs(dat_sf)$proj4string
-sf::st_crs(dat_sf)$units
-
-dat_sf.utm <-
-  sf::st_transform(dat_sf, 
-                   crs = crs_utm) 
-
-sf::st_crs(dat_sf.utm)$proj4string
-
-
-
-
+# streetnet_dodgr_latest <- get_streetnet_sf_dodgr(osmdata_bb = sf_bb_to_osmdata_bb, expand = 0)
+# save(
+#   streetnet_dodgr_latest,
+#   file = "./2025-refactor/chicago_streetnet_dodgr_latest.Rdata"
+# )
+# 
+# streetnet_ohsome_latest_mini <- 
+#   process_streetnet_ohsome(streetnet_sf = streetnet_ohsome_latest) %>%
+#   select(osm_id,name,highway,geometry) %>%
+#   get_geom_type_col()
+# 
+# streetnet_dodgr_latest_mini <- 
+#   streetnet_dodgr_latest %>%
+#   select(osm_id,name,highway,geometry) %>%
+#   get_geom_type_col()
+# 
+# dodgr_ids <- streetnet_dodgr_latest_mini$osm_id
+# ohsome_ids <- streetnet_ohsome_latest_mini$osm_id
+#   
+# only_dodgr_ids <- setdiff(dodgr_ids,ohsome_ids)
+# only_ohsome_ids <- setdiff(ohsome_ids,dodgr_ids)
+# 
+# ohsome_only <-
+#   streetnet_ohsome_latest_mini %>% sf::st_drop_geometry() %>%
+#   anti_join(streetnet_dodgr_latest_mini %>% sf::st_drop_geometry(), by = join_by(osm_id))
+# 
+# dodgr_only <-
+#   streetnet_dodgr_latest_mini %>% sf::st_drop_geometry() %>%
+#   anti_join(streetnet_ohsome_latest_mini %>% sf::st_drop_geometry(), by = join_by(osm_id))
