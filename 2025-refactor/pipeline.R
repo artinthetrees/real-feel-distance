@@ -2,7 +2,7 @@
 state_string <- "IL"
 county_string <- "Cook County"
 city_string <- "Chicago"
-year_num <- 2020
+year_num <- 2022
 
 ###########################################
 input_dir <- "./2025-refactor/input_data/"

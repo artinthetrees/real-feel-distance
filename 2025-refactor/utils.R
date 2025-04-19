@@ -20,51 +20,39 @@ get_obj_from_rdata <- function(rdata_file_path,obj_name=NULL){
   return(obj)
 }
 
-#get_full_streetnet_lonlat <- function(state_string, city_string, year_num){
-get_full_streetnet_lonlat <- function(state_string, city_string){
-  place_bb <- osmdata::getbb(place_name=paste(city_string,state_string,sep=", "), featuretype = "city")
-  print(place_bb)
+points_df_to_sf <- function(points_df,lat_var,lon_var,crs_lonlat,crs_utm){
   
-  #datetime_string <- paste0(as.character(year_num),"-06-01T00:00:00Z") # default to june 1 of the specified year
-  #print(datetime_string)
+  # points_df is a simple dataframe (NOT an sf object) that minimally includes a column with longitude and a column with latitude;
+  #    where each row is a lonlat point location (e.g. location of a store) 
+  # lat_var is the name of the df column with latitude
+  # lon_var is the name of the df column with longitude
+  # crs_lonlat is a string that specifies your crs for lonlat maps
+  # crs_utm is a string that specifies your crs for utm maps
   
-  #raw_streetnet <- dodgr_streetnet_update(bbox = place_bb, expand = 0.05, datetime = datetime_string)
-  raw_streetnet <- dodgr::dodgr_streetnet(bbox = place_bb, expand = 0.05)
-  return(raw_streetnet)
+  # clean any points without long/lat
+  r <- which(is.na(points_df[lon_var]))
+  points_df <- points_df[-r,]
+  
+  # set a crs for the grocery lat/long coordinates
+  points_sf.lonlat <- 
+    sf::st_as_sf(points_df, coords = c(lon_var, lat_var), crs = crs_lonlat)
+  
+  # check that the crs was set and check the units (will be null for longlat projection)
+  print(sf::st_crs(points_sf.lonlat)$proj4string)
+  print(sf::st_crs(points_sf.lonlat)$units)
+  
+  # convert crs to use utm which measures distance in meters
+  points_sf.utm <- 
+    sf::st_transform(points_sf.lonlat, crs = crs_utm) 
+  
+  # check that the crs was set and check the units (will be meters for utm projection)
+  print(sf::st_crs(points_sf.utm)$proj4string)
+  print(sf::st_crs(points_sf.utm)$units)
+  
+  return(list(points_sf.lonlat=points_sf.lonlat,points_sf.utm=points_sf.utm))
 }
 
-# get_crs <- function(my_census_api_key,county_string,state_string,year_num,crs_datum){
-#     
-#     fips_cd_df <-
-#         tidycensus::fips_codes %>%
-#         #get(data(fips_codes)) %>%
-#         filter(county == county_string & state == state_string)
-# 
-#     county_fips_cd <- sprintf("%03s", (fips_cd_df[1, "county_code"]))
-#     state_fips_cd <- sprintf("%02s", fips_cd_df[1, "state_code"])
-# 
-#     county_centroid <- 
-#         tigris::counties(state = state_string, resolution = "20m", year = year_num) %>%
-#         sf::st_centroid() %>%
-#         filter(COUNTYFP == county_fips_cd)
-# 
-#     county_centroid <- 
-#         county_centroid %>%
-#         mutate(lat = unlist(purrr::map(county_centroid$geometry,2)),
-#             lon = unlist(purrr::map(county_centroid$geometry,1))) %>% 
-#         sf::st_drop_geometry()
-# 
-#     county_centroid_lon <- county_centroid[1,"lon"] 
-#     county_utm_zone <- floor((county_centroid_lon + 180) / 6) + 1
-# 
-#     #-----------------------------------
-#     crs_lonlat <- paste0("+proj=longlat +datum=",crs_datum)
-#     crs_utm <- paste0("+proj=utm +zone=",as.character(county_utm_zone)," +datum=",crs_datum)
-# 
-#     return(list(crs_lonlat=crs_lonlat, crs_utm=crs_utm, county_utm_zone=county_utm_zone))
-# }
-
-get_lonlat_points_within_boundary <- function(points_df,lat_var, lon_var,boundary_map_in_utm,crs_lonlat, crs_utm){
+get_points_within_boundary <- function(points_df,lat_var, lon_var, boundary_map_in_utm, crs_lonlat, crs_utm){
 
     # points_df is a simple dataframe (NOT an sf object) that minimally includes a column with longitude and a column with latitude;
     #    where each row is a lonlat point location (e.g. location of a store) 
@@ -74,16 +62,19 @@ get_lonlat_points_within_boundary <- function(points_df,lat_var, lon_var,boundar
     # crs_lonlat is a string that specifies your crs for lonlat maps
     # crs_utm is a string that specifies your crs for utm maps
     
+    points_sf <- points_df_to_sf(points_df = points_df, lat_var = lat_var, lon_var = lon_var, crs_lonlat = crs_lonlat, crs_utm = crs_utm)
+    points_sf.lonlat <- points_sf$points_sf.lonlat
+    points_sf.utm <- points_sf$points_sf.utm
+    
+    # p_df_lonlat <- sf::st_as_sf(points_df,coords=c(lon_var,lat_var),crs=crs_lonlat)
+    # p_df_utm <- sf::st_transform(p_df_lonlat, crs=crs_utm)
 
-    p_df_lonlat <- sf::st_as_sf(points_df,coords=c(lon_var,lat_var),crs=crs_lonlat)
-    p_df_utm <- sf::st_transform(p_df_lonlat, crs=crs_utm)
-
-    p_intersects <- sf::st_intersects(p_df_utm,boundary_map_in_utm)
+    p_intersects <- sf::st_intersects(points_sf.utm,boundary_map_in_utm)
     p_within_boolean <- sapply(p_intersects, function(x) !is_empty(x))
 
-    p_within_orig <- points_df[p_within_boolean, ]
-    p_within_lonlat <- p_df_lonlat[p_within_boolean, ]
-    p_within_utm <- p_df_utm[p_within_boolean, ]
+    p_within_df <- points_df[p_within_boolean, ]
+    p_within_sf.lonlat <- points_sf.lonlat[p_within_boolean, ]
+    p_within_sf.utm <- points_sf.utm[p_within_boolean, ]
 
-    return(list(points_within_orig=p_within_orig,points_within_lonlat=p_within_lonlat,points_within_utm=p_within_utm))
+    return(list(points_within_df=p_within_df,points_within_sf.lonlat=p_within_sf.lonlat,points_within_sf.utm=p_within_sf.utm))
 }
