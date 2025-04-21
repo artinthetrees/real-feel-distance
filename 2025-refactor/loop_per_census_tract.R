@@ -1,4 +1,13 @@
 library(tidyverse)
+library(foreach)
+library(doParallel)
+
+n_cores <- detectCores()
+n_cores
+
+# Register cluster
+cluster <- makeCluster(n_cores - 1)
+registerDoParallel(cluster)
 #################################################################
 # list all objs in workspace at start
 
