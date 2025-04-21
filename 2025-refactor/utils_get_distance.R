@@ -18,7 +18,7 @@ pts_to_streetnet_vertices_ids <- function(streetnet_vertices,pts_array.lonlat){
 }
 
 
-process_distances_df <- function(distances_df,from_streetnet_vertices_ids,to_streetnet_vertices_ids){
+process_distances_df <- function(distances, distances_df, from_streetnet_vertices_ids, to_streetnet_vertices_ids){
   
   if (nrow(distances_df) == 1){
     
@@ -105,11 +105,10 @@ get_distances_df <- function(one_tract_sf.utm, grocery_sf.utm, streetnet_vertice
   # get "from" points in this census tract - i.e. residences
   
   one_tract_pts <- 
-    get_regularly_spaced_points(one_tract_sf.utm, 
+    get_regularly_spaced_points(boundary_map_in_utm = one_tract_sf.utm, 
                                 crs_lonlat=crs_lonlat, 
                                 crs_utm=crs_utm, 
-                                dist_between_pnts=100
-    )
+                                dist_between_pnts=100)
   
   #one_tract_pts_sf.utm <- one_tract_pts$pts_sf.utm
   one_tract_pts_array.lonlat <- one_tract_pts$pts_array.lonlat
@@ -120,21 +119,6 @@ get_distances_df <- function(one_tract_sf.utm, grocery_sf.utm, streetnet_vertice
   from_pnts <- pts_to_streetnet_vertices_ids(streetnet_vertices = streetnet_vertices, pts_array.lonlat = one_tract_pts_array.lonlat)
   from_streetnet_vertices_ids <- from_pnts$my_streetnet_vertices_ids
   
-  # from_streetnet_vertices_idxs <- dodgr::match_pts_to_verts(streetnet_vertices, one_tract_pts_array.lonlat, connected = TRUE)
-  # 
-  # from_streetnet_vertices_df <- streetnet_vertices[from_streetnet_vertices_idxs,]
-  # 
-  # from_streetnet_vertices_sf.lonlat <- 
-  #   from_streetnet_vertices_df %>% 
-  #   sf::st_as_sf(coords = c("x","y")) %>% 
-  #   sf::st_set_crs(crs_lonlat) 
-  # 
-  # from_streetnet_vertices_sf.utm <- 
-  #   from_streetnet_vertices_sf.lonlat %>% 
-  #   sf::st_transform(crs_utm)
-  # 
-  # from_streetnet_vertices_ids <- streetnet_vertices$id [from_streetnet_vertices_idxs] 
-  
   ###############################################
   # get "to" points in this census tract - i.e. grocery stores
   
@@ -144,6 +128,11 @@ get_distances_df <- function(one_tract_sf.utm, grocery_sf.utm, streetnet_vertice
     sf::st_filter(one_tract_sf.utm, 
                   .predicate = sf::st_is_within_distance,
                   dist = 2000)
+  
+  if (nrow(grocery_one_tract_2km_buffer_sf.utm) == 0){
+    print("no grocery stores within 2km of tract; will not calculate distances; recording tract and exiting")
+    return(list(no_distances=TRUE,tract_name=tract_name,tract_geoid=tract_geoid))
+  }
   
   grocery_one_tract_2km_buffer_sf.lonlat <- 
     sf::st_transform(grocery_one_tract_2km_buffer_sf.utm,
@@ -156,20 +145,6 @@ get_distances_df <- function(one_tract_sf.utm, grocery_sf.utm, streetnet_vertice
   to_pnts <- pts_to_streetnet_vertices_ids(streetnet_vertices = streetnet_vertices, pts_array.lonlat = grocery_one_tract_2km_buffer_array.lonlat)
   to_streetnet_vertices_ids <- to_pnts$my_streetnet_vertices_ids
   
-  # to_streetnet_vertices_idxs <- dodgr::match_pts_to_verts(streetnet_vertices, grocery_one_tract_2km_buffer_array.lonlat, connected = TRUE)
-  # 
-  # to_streetnet_vertices_df <- streetnet_vertices[to_streetnet_vertices_idxs,]
-  # 
-  # to_streetnet_vertices_sf.lonlat <- 
-  #   to_streetnet_vertices_df %>% 
-  #   sf::st_as_sf(coords = c("x","y")) %>% 
-  #   sf::st_set_crs(crs_lonlat) 
-  # 
-  # to_streetnet_vertices_sf.utm <- 
-  #   to_streetnet_vertices_sf.lonlat %>% 
-  #   sf::st_transform(crs_utm)
-  # 
-  # to_streetnet_vertices_ids <- streetnet_vertices$id [to_streetnet_vertices_idxs] 
   ###############################################
   # get shortest distance between every from and to point
   
@@ -182,6 +157,7 @@ get_distances_df <- function(one_tract_sf.utm, grocery_sf.utm, streetnet_vertice
   
   process_distances <- 
     process_distances_df(
+      distances = distances,
       distances_df = distances_df, 
       from_streetnet_vertices_ids = from_streetnet_vertices_ids, 
       to_streetnet_vertices_ids = to_streetnet_vertices_ids
@@ -196,6 +172,7 @@ get_distances_df <- function(one_tract_sf.utm, grocery_sf.utm, streetnet_vertice
   summary_distances_df$tract_geoid <- tract_geoid
   
   return(list(
+    no_distances=FALSE,
     distances_df=distances_df,
     summary_distances_df=summary_distances_df
     ))
