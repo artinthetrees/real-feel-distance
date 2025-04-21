@@ -58,9 +58,12 @@ for (i in 1:nrow(tracts.within.city.utm)){
         no_distances=integer()
         )
     
-    distances_df$tract_name <- my_distances$tract_name
-    distances_df$tract_geoid <- my_distances$tract_geoid
-    distances_df$no_distances <- 1
+    distances_df[1, ] <- c(
+      my_distances$tract_name,
+      my_distances$tract_geoid,
+      1
+      )
+    
     distances_df$tract_id <- tract_id
     distances_df <- distances_df %>% select(tract_id,tract_name,tract_geoid,no_distances)
     
@@ -71,9 +74,11 @@ for (i in 1:nrow(tracts.within.city.utm)){
         no_distances=integer()
       )
     
-    summary_distances_df$tract_name <- my_distances$tract_name
-    summary_distances_df$tract_geoid <- my_distances$tract_geoid
-    summary_distances_df$no_distances <- 1
+    summary_distances_df[1, ] <- c(
+      my_distances$tract_name,
+      my_distances$tract_geoid,
+      1
+    )
     summary_distances_df$tract_id <- tract_id  
     summary_distances_df <- summary_distances_df %>% select(tract_id,tract_name,tract_geoid,no_distances)
     
