@@ -78,3 +78,65 @@ get_points_within_boundary <- function(points_df,lat_var, lon_var, boundary_map_
 
     return(list(points_within_df=p_within_df,points_within_sf.lonlat=p_within_sf.lonlat,points_within_sf.utm=p_within_sf.utm))
 }
+
+get_regularly_spaced_points <- function(boundary_map_in_utm, crs_lonlat, crs_utm, dist_between_pnts){
+  # dist_between_pnts must be in meters
+  
+  r <- raster::raster(boundary_map_in_utm, res=dist_between_pnts)
+  r <- raster::rasterize(boundary_map_in_utm, r)
+  pts_spdf.utm <- raster::rasterToPoints(r, spatial=TRUE)
+  
+  pts_spdf.lonlat <- sp::spTransform(pts_spdf.utm, crs_lonlat)
+  pts_array.lonlat <- raster::coordinates(pts_spdf.lonlat)
+  pts_df.lonlat <- data.frame(pts_array.lonlat)
+  print(colnames(pts_df.lonlat))
+  print(head(pts_df.lonlat))
+  
+  # plot(p)
+  # points(result, pch="+", cex=.5)
+  
+  # set a crs for the lat/long coordinates
+  pts_sf.lonlat <- 
+    sf::st_as_sf(pts_df.lonlat, coords = c(1, 2), crs = crs_lonlat)
+  print(7)
+  # # check that the crs was set and check the units (will be null for longlat projection)
+  # sf::st_crs(pts_lonlat.sf)$proj4string
+  # sf::st_crs(pts_lonlat.sf)$units
+  
+  # convert crs to use utm which measures distance in meters, use zone 16N for chicago
+  pts_sf.utm <- 
+    sf::st_transform(pts_sf.lonlat,
+                     crs = crs_utm) 
+  
+  # # check that the crs was set and check the units (will be meters for utm projection)
+  # sf::st_crs(pts_lonlat.sf.utm)$proj4string
+  # sf::st_crs(pts_lonlat.sf.utm)$units
+  
+  return(list(
+    pts_sf.utm=pts_sf.utm,
+    pts_sf.lonlat=pts_sf.lonlat,
+    pts_df.lonlat=pts_df.lonlat,
+    pts_array.lonlat=pts_array.lonlat,
+    pts_spdf.lonlat=pts_spdf.lonlat,
+    pts_spdf.utm=pts_spdf.utm)
+    )
+
+}
+
+get_streetnet_in_boundary <- function(streetnet_sf.lonlat,boundary_map_sf.utm,crs_utm,crs_lonlat){
+  
+  #### optional
+  #streetnet_sf.lonlat <- get_obj_from_rdata(rdata_file_path = Gmisc::pathJoin(output_dir,"intermediate","street_network",city_output_fname),obj_name = streetnet_sf.lonlat)
+
+  streetnet_sf.utm <-
+    sf::st_transform(streetnet_sf.lonlat,
+                     crs = crs_utm)
+
+  boundary_map_streetnet_sf.utm_prelim <-
+    sf::st_intersection(boundary_map_sf.utm,streetnet_sf.utm)
+
+  boundary_map_streetnet_sf.utm <-
+    streetnet_sf.utm %>%
+    filter(osm_id %in% boundary_map_streetnet_sf.utm_prelim$osm_id)
+  
+}
