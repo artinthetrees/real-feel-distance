@@ -20,6 +20,8 @@ pts_to_streetnet_vertices_ids <- function(streetnet_vertices,pts_array.lonlat){
 
 process_distances_df <- function(distances, distances_df, from_streetnet_vertices_ids, to_streetnet_vertices_ids){
   
+  ncol_distances_df <- ncol(distances_df)
+  
   if (nrow(distances_df) == 1){
     
     distances_df$min_dist <- min(distances,na.rm = TRUE)
@@ -42,11 +44,29 @@ process_distances_df <- function(distances, distances_df, from_streetnet_vertice
   
   if (nrow(distances_df) == 1){
     
-    distances_df$min_dist_index <- which(distances == min(distances, na.rm = TRUE))
+    if (ncol_distances_df == 1){
+      
+      distances_df$min_dist_index <- 1
+      
+    } else {
+      
+      distances_df$min_dist_index <- which(distances == min(distances, na.rm = TRUE))
+      
+    }
+    
     
   } else if (nrow(distances_df) > 1){
     
-    distances_df$min_dist_index <- apply(distances,1,function(x) which(x==min(x, na.rm = TRUE))[1])
+    if (ncol_distances_df == 1){
+      
+      distances_df$min_dist_index <- 1
+      
+    } else {
+      
+      distances_df$min_dist_index <- apply(distances,1,function(x) which(x==min(x, na.rm = TRUE))[1])
+      
+    }
+    
     
   }
   
@@ -62,6 +82,7 @@ process_distances_df <- function(distances, distances_df, from_streetnet_vertice
   quartiles_dist_to_grocery_75p <- quantile(distances_df$min_dist)[4]
   n_from_pnts <- nrow(distances_df)
   n_from_pnts_no_path <- nrow(distances_df.no_path)
+  n_to_points <- ncol_distances_df
   
   distances_df$max_shortest_path <- ifelse(distances_df$min_dist == max_dist_to_grocery,1,0)
   distances_df$min_shortest_path <- ifelse(distances_df$min_dist == min_dist_to_grocery,1,0)
@@ -81,7 +102,8 @@ process_distances_df <- function(distances, distances_df, from_streetnet_vertice
                quartiles_dist_to_grocery_50p,
                quartiles_dist_to_grocery_75p,
                n_from_pnts,
-               n_from_pnts_no_path)
+               n_from_pnts_no_path,
+               n_to_points)
   
   row.names(summary_distances_df) <- NULL
   
