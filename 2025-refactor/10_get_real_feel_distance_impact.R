@@ -28,12 +28,12 @@ tracts_within_city_sf.utm <- get_obj_from_rdata(rdata_file_path = Gmisc::pathJoi
 #################################################################
 # work for this step
 
-tracts_acs_and_geom <- 
-  tracts_within_city_sf.utm %>% select(GEOID,ALAND,AWATER,geometry) %>%
-  left_join(.,
-            state_tracts_acs_estimates_df,
-            by = c("GEOID" = "GEOID")) %>%
-  mutate(pop_per_km2 = tpop/(ALAND/1000000))
+# tracts_acs_and_geom <- 
+#   tracts_within_city_sf.utm %>% select(GEOID,ALAND,AWATER,geometry) %>%
+#   left_join(.,
+#             state_tracts_acs_estimates_df,
+#             by = c("GEOID" = "GEOID")) %>%
+#   mutate(pop_per_km2 = tpop/(ALAND/1000000))
 
 
 impact_df <- 
@@ -62,7 +62,7 @@ impact_df <-
            starts_with("avoid_trip"),
            starts_with("newly_avoid_trip"))) %>% 
   left_join(.,
-            tracts_acs_and_geom,
+            state_tracts_acs_estimates_df,
             by = c("tract_geoid" = "GEOID"))
 
 ################################ impact by day
@@ -135,33 +135,94 @@ impact_by_day_df <-
             
  
 
-ggplot() + 
-  geom_point(data=impact_by_day_df,aes(x=date,y=t_pop_older_adult_newly_avoid_walk_age_temp_dp_hi),colour = "blue") + 
-  geom_point(data=impact_by_day_df,aes(x=date,y=t_pop_older_adult_newly_avoid_walk_age_hi),colour = "red") + 
-  geom_point(data=impact_by_day_df,aes(x=date,y=t_pop_older_adult_newly_avoid_walk_temp_dp_hi),colour = "lightblue") + 
-  geom_point(data=impact_by_day_df,aes(x=date,y=t_pop_older_adult_newly_avoid_walk_hi),colour = "pink") + 
-  geom_point(data=impact_by_day_df,aes(x=date,y=t_pop_older_adult_newly_avoid_walk_age),colour = "gray")
+# ggplot() + 
+#   geom_point(data=impact_by_day_df,aes(x=lubridate::ymd(date),y=t_pop_older_adult_newly_avoid_walk_age_temp_dp_hi),colour = "blue") + 
+#   geom_point(data=impact_by_day_df,aes(x=lubridate::ymd(date),y=t_pop_older_adult_newly_avoid_walk_age_hi),colour = "red") + 
+#   geom_point(data=impact_by_day_df,aes(x=lubridate::ymd(date),y=t_pop_older_adult_newly_avoid_walk_temp_dp_hi),colour = "lightblue") + 
+#   geom_point(data=impact_by_day_df,aes(x=lubridate::ymd(date),y=t_pop_older_adult_newly_avoid_walk_hi),colour = "pink") + 
+#   geom_point(data=impact_by_day_df,aes(x=lubridate::ymd(date),y=t_pop_older_adult_newly_avoid_walk_age),colour = "gray") +
+#   xlab(NULL) +
+#   ylab("# Older Adults Avoiding Walking Trips")
 
-################################ impact by week
+by_day <- 
+ggplot() + 
+  geom_point(data=impact_by_day_df,aes(x=lubridate::ymd(date),y=t_pop_older_adult_newly_avoid_walk_age_temp_dp_hi,color = "RF - full")) + 
+  geom_point(data=impact_by_day_df,aes(x=lubridate::ymd(date),y=t_pop_older_adult_newly_avoid_walk_age_hi,color = "RF - heat index")) + 
+  geom_point(data=impact_by_day_df,aes(x=lubridate::ymd(date),y=t_pop_older_adult_newly_avoid_walk_temp_dp_hi,color = "RF - full, minus age")) + 
+  geom_point(data=impact_by_day_df,aes(x=lubridate::ymd(date),y=t_pop_older_adult_newly_avoid_walk_hi,color = "RF - heat index, minus age")) + 
+  geom_point(data=impact_by_day_df,aes(x=lubridate::ymd(date),y=t_pop_older_adult_newly_avoid_walk_age,color = "RF - age only")) +
+  scale_color_manual(
+    name = 'Real Feel Type',
+    breaks = c("RF - full", "RF - heat index", "RF - full, minus age", "RF - heat index, minus age","RF - age only"),
+    values = c("RF - full"="blue", "RF - heat index"="red", "RF - full, minus age"="lightblue", "RF - heat index, minus age"="pink","RF - age only"="gray")
+  ) +
+  #theme(legend.title = element_text(size = 20), legend.text = element_text(size = 14)) +
+  xlab(NULL) +
+  ylab(NULL) +
+  ggtitle("# Older Adults Newly Avoiding Walking Trips")
+
+by_day_smoothed <- 
+ggplot() + 
+  geom_smooth(data=impact_by_day_df,aes(x=lubridate::ymd(date),y=t_pop_older_adult_newly_avoid_walk_age_temp_dp_hi,color = "RF - full")) + 
+  geom_smooth(data=impact_by_day_df,aes(x=lubridate::ymd(date),y=t_pop_older_adult_newly_avoid_walk_age_hi,color = "RF - heat index")) + 
+  geom_smooth(data=impact_by_day_df,aes(x=lubridate::ymd(date),y=t_pop_older_adult_newly_avoid_walk_temp_dp_hi,color = "RF - full, minus age")) + 
+  geom_smooth(data=impact_by_day_df,aes(x=lubridate::ymd(date),y=t_pop_older_adult_newly_avoid_walk_hi,color = "RF - heat index, minus age")) + 
+  geom_smooth(data=impact_by_day_df,aes(x=lubridate::ymd(date),y=t_pop_older_adult_newly_avoid_walk_age,color = "RF - age only")) +
+  scale_color_manual(
+    name = 'Real Feel Type',
+    breaks = c("RF - full", "RF - heat index", "RF - full, minus age", "RF - heat index, minus age","RF - age only"),
+    values = c("RF - full"="blue", "RF - heat index"="red", "RF - full, minus age"="lightblue", "RF - heat index, minus age"="pink","RF - age only"="gray")
+  ) +
+  #theme(legend.title = element_text(size = 20), legend.text = element_text(size = 14)) +
+  xlab(NULL) +
+  ylab(NULL) +
+  ggtitle("# Older Adults Newly Avoiding Walking Trips")
+
+by_day_patchwork <- 
+  by_day/by_day_smoothed + plot_annotation(tag_levels = 'A')
+
+################################ impact by week - focus on summer months
+
+# filter to just the summer months
+# for each week in the summer months, 
+# add up the number of days in that week where a trip is avoided (raw distance) or newly avoided based on real feel
+# drop the first and last week of the summer months period do get rid of possible partial weeks
 
 impact_by_week <- 
-  impact_df %>% 
+  impact_df %>%
+  filter(lubridate::month(lubridate::ymd(date)) %in% c(6,7,8,9)) %>%
   group_by(tract_id,tract_geoid,tract_name,week)%>%
   summarise(
     avoid_trip_sum = sum(avoid_trip),
     across(starts_with("newly_avoid_trip"),.fns=list(sum = ~sum(.x)))
     ) %>%
+  ungroup() %>%
+  group_by(tract_id) %>%
+  filter(week != max(week) & week != min(week)) %>%
   ungroup()
+
+n_weeks <- impact_by_week %>% group_by(tract_id) %>% summarise(n=n())
+n_weeks <- n_weeks$n[1]
 
 impact_by_week_by_tract <- 
   impact_by_week %>%
-  filter(week != 53) %>%
   group_by(tract_id,tract_geoid,tract_name) %>%
   summarise(
     avoid_trip_sum = sum(avoid_trip_sum==7),
     across(starts_with("newly_avoid_trip"),.fns=list(sum = ~sum(.x==7)))
   ) %>%
-  ungroup()
+  ungroup() %>%
+  mutate(
+    across(-c(tract_id,tract_geoid,tract_name),.fns = list(
+      g_than_1w = ~ifelse(.x>1,1,0)
+    ))
+  )
+
+hi <- 
+  tracts_within_city_sf.utm %>% 
+  left_join(.,
+            impact_by_tract,
+            by = c("GEOID"="tract_geoid"))
 
 impact_by_week_by_tract_summary <- 
   impact_by_week_by_tract %>%
