@@ -38,7 +38,8 @@ tracts_acs_and_geom <-
 
 impact_df <- 
   real_feel_distance_df %>% 
-  mutate(week = lubridate::week(lubridate::ymd(date))) %>%
+  mutate(week = lubridate::week(lubridate::ymd(date)),
+         avoid_trip = ifelse(raw_dist > 1000,1,0)) %>%
   select(c(tract_id,
            tract_geoid,
            tract_name,
@@ -58,15 +59,119 @@ impact_df <-
            dp_dummy,
            hi_dummy,
            raw_dist,
-           starts_with("newly_avoid_trip"))) 
-  
+           starts_with("avoid_trip"),
+           starts_with("newly_avoid_trip"))) %>% 
+  left_join(.,
+            tracts_acs_and_geom,
+            by = c("tract_geoid" = "GEOID"))
+
+################################ impact by day
+
+impact_by_day_df <- 
+  impact_df %>%
+  group_by(date) %>%
+  summarize(t_pop_avoid_walk = sum(tpop[avoid_trip == 1],na.rm = TRUE),
+            t_pop_older_adult_avoid_walk = sum(tpop_older_adult[avoid_trip == 1], na.rm = TRUE),
+            t_pop_older_adult_nonwhite_avoid_walk = sum(tpop_older_adult_nonwhite[avoid_trip == 1], na.rm = TRUE),
+            
+            ## newly avoid trip - counts
+            
+            # older adult
+            t_pop_older_adult_newly_avoid_walk_age_temp_dp_hi = sum(tpop_older_adult[avoid_trip_cat_age_temp_dp_hi == "newly avoid trip"], na.rm = TRUE),
+            t_pop_older_adult_newly_avoid_walk_age_hi = sum(tpop_older_adult[avoid_trip_cat_age_hi == "newly avoid trip"], na.rm = TRUE),
+            t_pop_older_adult_newly_avoid_walk_temp_dp_hi = sum(tpop_older_adult[avoid_trip_cat_temp_dp_hi == "newly avoid trip"], na.rm = TRUE),
+            t_pop_older_adult_newly_avoid_walk_hi = sum(tpop_older_adult[avoid_trip_cat_hi == "newly avoid trip"], na.rm = TRUE),
+            t_pop_older_adult_newly_avoid_walk_age = sum(tpop_older_adult[avoid_trip_cat_age == "newly avoid trip"], na.rm = TRUE),
+            
+            # older adult nonwhite
+            t_pop_older_adult_nonwhite_newly_avoid_walk_age_temp_dp_hi = sum(tpop_older_adult_nonwhite[avoid_trip_cat_age_temp_dp_hi == "newly avoid trip"], na.rm = TRUE),
+            t_pop_older_adult_nonwhite_newly_avoid_walk_age_hi = sum(tpop_older_adult_nonwhite[avoid_trip_cat_age_hi == "newly avoid trip"], na.rm = TRUE),
+            t_pop_older_adult_nonwhite_newly_avoid_walk_temp_dp_hi = sum(tpop_older_adult_nonwhite[avoid_trip_cat_temp_dp_hi == "newly avoid trip"], na.rm = TRUE),
+            t_pop_older_adult_nonwhite_newly_avoid_walk_hi = sum(tpop_older_adult_nonwhite[avoid_trip_cat_hi == "newly avoid trip"], na.rm = TRUE),
+            t_pop_older_adult_nonwhite_newly_avoid_walk_age = sum(tpop_older_adult_nonwhite[avoid_trip_cat_age == "newly avoid trip"], na.rm = TRUE),
+            
+            # older adult below poverty line
+            t_pop_older_adult_poverty_reported_newly_avoid_walk_age_temp_dp_hi = sum(tpop_older_adult_poverty_reported[avoid_trip_cat_age_temp_dp_hi == "newly avoid trip"], na.rm = TRUE),
+            t_pop_older_adult_below_poverty_newly_avoid_walk_age_temp_dp_hi = sum(tpop_older_adult_below_poverty[avoid_trip_cat_age_temp_dp_hi == "newly avoid trip"], na.rm = TRUE),
+            
+            t_pop_older_adult_poverty_reported_newly_avoid_walk_age_hi = sum(tpop_older_adult_poverty_reported[avoid_trip_cat_age_hi == "newly avoid trip"], na.rm = TRUE),
+            t_pop_older_adult_below_poverty_newly_avoid_walk_age_hi = sum(tpop_older_adult_below_poverty[avoid_trip_cat_age_hi == "newly avoid trip"], na.rm = TRUE),
+            
+            t_pop_older_adult_poverty_reported_newly_avoid_walk_temp_dp_hi = sum(tpop_older_adult_poverty_reported[avoid_trip_cat_temp_dp_hi == "newly avoid trip"], na.rm = TRUE),
+            t_pop_older_adult_below_poverty_newly_avoid_walk_temp_dp_hi = sum(tpop_older_adult_below_poverty[avoid_trip_cat_temp_dp_hi == "newly avoid trip"], na.rm = TRUE),
+            
+            t_pop_older_adult_poverty_reported_newly_avoid_walk_hi = sum(tpop_older_adult_poverty_reported[avoid_trip_cat_hi == "newly avoid trip"], na.rm = TRUE),
+            t_pop_older_adult_below_poverty_newly_avoid_walk_hi = sum(tpop_older_adult_below_poverty[avoid_trip_cat_hi == "newly avoid trip"], na.rm = TRUE),
+            
+            t_pop_older_adult_poverty_reported_newly_avoid_walk_age = sum(tpop_older_adult_poverty_reported[avoid_trip_cat_age == "newly avoid trip"], na.rm = TRUE),
+            t_pop_older_adult_below_poverty_newly_avoid_walk_age = sum(tpop_older_adult_below_poverty[avoid_trip_cat_age == "newly avoid trip"], na.rm = TRUE),
+            
+            # older adult live alone
+            t_pop_older_adult_living_arrange_reported_newly_avoid_walk_age_temp_dp_hi = sum(tpop_older_adult_living_arrange_reported[avoid_trip_cat_age_temp_dp_hi == "newly avoid trip"], na.rm = TRUE),
+            t_pop_older_adult_live_alone_newly_avoid_walk_age_temp_dp_hi = sum(tpop_older_adult_live_alone[avoid_trip_cat_age_temp_dp_hi == "newly avoid trip"], na.rm = TRUE),
+            
+            ## 
+            
+            tpop = sum(tpop),
+            tpop_older_adult = sum(tpop_older_adult),
+            tpop_older_adult_nonwhite = sum(tpop_older_adult_nonwhite),
+            
+            p_older_adult = tpop_older_adult/tpop,
+            p_older_adult_nonwhite = tpop_older_adult_nonwhite/tpop,
+            
+            ## newly avoid trip - percentages
+            
+            p_pop_older_adult_nonwhite_newly_avoid_walk_age_temp_dp_hi = t_pop_older_adult_nonwhite_newly_avoid_walk_age_temp_dp_hi/t_pop_older_adult_newly_avoid_walk_age_temp_dp_hi,
+            p_pop_older_adult_below_poverty_newly_avoid_walk_age_temp_dp_hi = t_pop_older_adult_below_poverty_newly_avoid_walk_age_temp_dp_hi/t_pop_older_adult_poverty_reported_newly_avoid_walk_age_temp_dp_hi,
+            p_pop_older_adult_live_alone_newly_avoid_walk_age_temp_dp_hi = t_pop_older_adult_live_alone_newly_avoid_walk_age_temp_dp_hi/t_pop_older_adult_living_arrange_reported_newly_avoid_walk_age_temp_dp_hi
+            
+            ## 
+            ) %>%
+  ungroup()
+            
+
+            
+            
+            
+ 
+
+ggplot() + 
+  geom_point(data=impact_by_day_df,aes(x=date,y=t_pop_older_adult_newly_avoid_walk_age_temp_dp_hi),colour = "blue") + 
+  geom_point(data=impact_by_day_df,aes(x=date,y=t_pop_older_adult_newly_avoid_walk_age_hi),colour = "red") + 
+  geom_point(data=impact_by_day_df,aes(x=date,y=t_pop_older_adult_newly_avoid_walk_temp_dp_hi),colour = "lightblue") + 
+  geom_point(data=impact_by_day_df,aes(x=date,y=t_pop_older_adult_newly_avoid_walk_hi),colour = "pink") + 
+  geom_point(data=impact_by_day_df,aes(x=date,y=t_pop_older_adult_newly_avoid_walk_age),colour = "gray")
+
+################################ impact by week
+
 impact_by_week <- 
   impact_df %>% 
   group_by(tract_id,tract_geoid,tract_name,week)%>%
-  summarise()
-  my_df$avoid_trip_cat <- ifelse(my_df$raw_dist > 1000,"avoid trip","take trip")
-my_df$avoid_trip_cat <- ifelse(my_df$newly_avoid_trip == 1,"newly avoid trip",my_df$avoid_trip_cat)
-my_df$avoid_trip_cat <- as.factor(my_df$avoid_trip_cat)
+  summarise(
+    avoid_trip_sum = sum(avoid_trip),
+    across(starts_with("newly_avoid_trip"),.fns=list(sum = ~sum(.x)))
+    ) %>%
+  ungroup()
+
+impact_by_week_by_tract <- 
+  impact_by_week %>%
+  filter(week != 53) %>%
+  group_by(tract_id,tract_geoid,tract_name) %>%
+  summarise(
+    avoid_trip_sum = sum(avoid_trip_sum==7),
+    across(starts_with("newly_avoid_trip"),.fns=list(sum = ~sum(.x==7)))
+  ) %>%
+  ungroup()
+
+impact_by_week_by_tract_summary <- 
+  impact_by_week_by_tract %>%
+  summarise(
+    n=n(),
+    n_avoid_trip = sum(avoid_trip_sum == 52,na.rm = TRUE),
+    across(starts_with("newly_avoid_trip"),.fns=list(sum = ~sum(.x > 1,na.rm = TRUE)))
+  )
+
+
 #################################################################
 # save for this step
 
