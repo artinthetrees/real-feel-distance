@@ -68,6 +68,7 @@ real_feel_distance_df <-
          hi_dist_young = dist_to_grocery*hi_dummy*hi_abv80F_penalty_young*(heat_index - weathermetrics::fahrenheit.to.celsius(hi_ref_f, round = 2)),
          
          raw_dist = dist_to_grocery,
+         avoid_trip = ifelse(raw_dist > walking_dist,1,0),
          
          real_feel_dist_age_temp_dp_hi = 
            dist_to_grocery + 
@@ -116,42 +117,92 @@ real_feel_distance_df <-
          p_increase_age_temp_dp_hi = real_feel_dist_age_temp_dp_hi/raw_dist - 1,
          more_than_double_age_temp_dp_hi = ifelse(p_increase_age_temp_dp_hi > 1,1,0),
          newly_avoid_trip_age_temp_dp_hi = ifelse(raw_dist <= walking_dist & real_feel_dist_age_temp_dp_hi > walking_dist,1,0),
+         avoid_trip_cat_age_temp_dp_hi = case_when(
+           raw_dist <= walking_dist & real_feel_dist_age_temp_dp_hi <= walking_dist ~ "take trip",
+           raw_dist > walking_dist ~ "avoid trip",
+           raw_dist <= walking_dist & real_feel_dist_age_temp_dp_hi > walking_dist ~ "newly avoid trip",
+           ),
          
          p_increase_age_hi = real_feel_dist_age_hi/raw_dist - 1,
          more_than_double_age_hi = ifelse(p_increase_age_hi > 1,1,0),
          newly_avoid_trip_age_hi = ifelse(raw_dist <= walking_dist & real_feel_dist_age_hi > walking_dist,1,0),
+         avoid_trip_cat_age_hi = case_when(
+           raw_dist <= walking_dist & real_feel_dist_age_hi <= walking_dist ~ "take trip",
+           raw_dist > walking_dist ~ "avoid trip",
+           raw_dist <= walking_dist & real_feel_dist_age_hi > walking_dist ~ "newly avoid trip",
+         ),
          
          p_increase_temp_dp_hi = real_feel_dist_temp_dp_hi/raw_dist - 1,
          more_than_double_temp_dp_hi = ifelse(p_increase_temp_dp_hi > 1,1,0),
          newly_avoid_trip_temp_dp_hi = ifelse(raw_dist <= walking_dist & real_feel_dist_temp_dp_hi > walking_dist,1,0),
+         avoid_trip_cat_temp_dp_hi = case_when(
+           raw_dist <= walking_dist & real_feel_dist_temp_dp_hi <= walking_dist ~ "take trip",
+           raw_dist > walking_dist ~ "avoid trip",
+           raw_dist <= walking_dist & real_feel_dist_temp_dp_hi > walking_dist ~ "newly avoid trip",
+         ),
          
          p_increase_hi = real_feel_dist_hi/raw_dist - 1,
          more_than_double_hi = ifelse(p_increase_hi > 1,1,0),
          newly_avoid_trip_hi = ifelse(raw_dist <= walking_dist & real_feel_dist_hi > walking_dist,1,0),
+         avoid_trip_cat_hi = case_when(
+           raw_dist <= walking_dist & real_feel_dist_hi <= walking_dist ~ "take trip",
+           raw_dist > walking_dist ~ "avoid trip",
+           raw_dist <= walking_dist & real_feel_dist_hi > walking_dist ~ "newly avoid trip",
+         ),
          
          p_increase_age = real_feel_dist_age/raw_dist - 1,
          more_than_double_age = ifelse(p_increase_age > 1,1,0),
          newly_avoid_trip_age = ifelse(raw_dist <= walking_dist & real_feel_dist_age > walking_dist,1,0),
+         avoid_trip_cat_age = case_when(
+           raw_dist <= walking_dist & real_feel_dist_age <= walking_dist ~ "take trip",
+           raw_dist > walking_dist ~ "avoid trip",
+           raw_dist <= walking_dist & real_feel_dist_age > walking_dist ~ "newly avoid trip",
+         ),
          #
          p_increase_age_temp_dp_hi_young = real_feel_dist_age_temp_dp_hi_young/raw_dist - 1,
          more_than_double_age_temp_dp_hi_young = ifelse(p_increase_age_temp_dp_hi_young > 1,1,0),
          newly_avoid_trip_age_temp_dp_hi_young = ifelse(raw_dist <= walking_dist & real_feel_dist_age_temp_dp_hi_young > walking_dist,1,0),
+         avoid_trip_cat_age_temp_dp_hi_young = case_when(
+           raw_dist <= walking_dist & real_feel_dist_age_temp_dp_hi_young <= walking_dist ~ "take trip",
+           raw_dist > walking_dist ~ "avoid trip",
+           raw_dist <= walking_dist & real_feel_dist_age_temp_dp_hi_young > walking_dist ~ "newly avoid trip",
+         ),
          
          p_increase_age_hi_young = real_feel_dist_age_hi_young/raw_dist - 1,
          more_than_double_age_hi_young = ifelse(p_increase_age_hi_young > 1,1,0),
          newly_avoid_trip_age_hi_young = ifelse(raw_dist <= walking_dist & real_feel_dist_age_hi_young > walking_dist,1,0),
+         avoid_trip_cat_age_hi_young = case_when(
+           raw_dist <= walking_dist & real_feel_dist_age_hi_young <= walking_dist ~ "take trip",
+           raw_dist > walking_dist ~ "avoid trip",
+           raw_dist <= walking_dist & real_feel_dist_age_hi_young > walking_dist ~ "newly avoid trip",
+         ),
          
          p_increase_temp_dp_hi_young = real_feel_dist_temp_dp_hi_young/raw_dist - 1,
          more_than_double_temp_dp_hi_young = ifelse(p_increase_temp_dp_hi_young > 1,1,0),
          newly_avoid_trip_temp_dp_hi_young = ifelse(raw_dist <= walking_dist & real_feel_dist_temp_dp_hi_young > walking_dist,1,0),
+         avoid_trip_cat_temp_dp_hi_young = case_when(
+           raw_dist <= walking_dist & real_feel_dist_temp_dp_hi_young <= walking_dist ~ "take trip",
+           raw_dist > walking_dist ~ "avoid trip",
+           raw_dist <= walking_dist & real_feel_dist_temp_dp_hi_young > walking_dist ~ "newly avoid trip",
+         ),
          
          p_increase_hi_young = real_feel_dist_hi_young/raw_dist - 1,
          more_than_double_hi_young = ifelse(p_increase_hi_young > 1,1,0),
          newly_avoid_trip_hi_young = ifelse(raw_dist <= walking_dist & real_feel_dist_hi_young > walking_dist,1,0),
+         avoid_trip_cat_hi_young = case_when(
+           raw_dist <= walking_dist & real_feel_dist_hi_young <= walking_dist ~ "take trip",
+           raw_dist > walking_dist ~ "avoid trip",
+           raw_dist <= walking_dist & real_feel_dist_hi_young > walking_dist ~ "newly avoid trip",
+         ),
          
          p_increase_age_young = real_feel_dist_age_young/raw_dist - 1,
          more_than_double_age_young = ifelse(p_increase_age_young > 1,1,0),
          newly_avoid_trip_age_young = ifelse(raw_dist <= walking_dist & real_feel_dist_age_young > walking_dist,1,0),
+         avoid_trip_cat_age_young = case_when(
+           raw_dist <= walking_dist & real_feel_dist_age_young <= walking_dist ~ "take trip",
+           raw_dist > walking_dist ~ "avoid trip",
+           raw_dist <= walking_dist & real_feel_dist_age_young > walking_dist ~ "newly avoid trip",
+         ),
          
          )
 
