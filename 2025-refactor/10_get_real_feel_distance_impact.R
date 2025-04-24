@@ -83,6 +83,13 @@ impact_by_day_df <-
             t_pop_older_adult_newly_avoid_walk_hi = sum(tpop_older_adult[avoid_trip_cat_hi == "newly avoid trip"], na.rm = TRUE),
             t_pop_older_adult_newly_avoid_walk_age = sum(tpop_older_adult[avoid_trip_cat_age == "newly avoid trip"], na.rm = TRUE),
             
+            # older adult with younger adult params
+            t_pop_older_adult_newly_avoid_walk_age_temp_dp_hi_young = sum(tpop_older_adult[avoid_trip_cat_age_temp_dp_hi_young == "newly avoid trip"], na.rm = TRUE),
+            t_pop_older_adult_newly_avoid_walk_age_hi_young = sum(tpop_older_adult[avoid_trip_cat_age_hi_young == "newly avoid trip"], na.rm = TRUE),
+            t_pop_older_adult_newly_avoid_walk_temp_dp_hi_young = sum(tpop_older_adult[avoid_trip_cat_temp_dp_hi_young == "newly avoid trip"], na.rm = TRUE),
+            t_pop_older_adult_newly_avoid_walk_hi_young = sum(tpop_older_adult[avoid_trip_cat_hi_young == "newly avoid trip"], na.rm = TRUE),
+            t_pop_older_adult_newly_avoid_walk_age_young = sum(tpop_older_adult[avoid_trip_cat_age_young == "newly avoid trip"], na.rm = TRUE),
+            
             # older adult nonwhite
             t_pop_older_adult_nonwhite_newly_avoid_walk_age_temp_dp_hi = sum(tpop_older_adult_nonwhite[avoid_trip_cat_age_temp_dp_hi == "newly avoid trip"], na.rm = TRUE),
             t_pop_older_adult_nonwhite_newly_avoid_walk_age_hi = sum(tpop_older_adult_nonwhite[avoid_trip_cat_age_hi == "newly avoid trip"], na.rm = TRUE),
@@ -181,6 +188,46 @@ ggplot() +
 by_day_patchwork <- 
   by_day/by_day_smoothed + plot_annotation(tag_levels = 'A')
 
+##
+
+by_day_young_params <- 
+  ggplot() + 
+  geom_point(data=impact_by_day_df,aes(x=lubridate::ymd(date),y=t_pop_older_adult_newly_avoid_walk_age_temp_dp_hi_young,color = "RF - full")) + 
+  geom_point(data=impact_by_day_df,aes(x=lubridate::ymd(date),y=t_pop_older_adult_newly_avoid_walk_age_hi_young,color = "RF - heat index")) + 
+  geom_point(data=impact_by_day_df,aes(x=lubridate::ymd(date),y=t_pop_older_adult_newly_avoid_walk_temp_dp_hi_young,color = "RF - full, minus age")) + 
+  geom_point(data=impact_by_day_df,aes(x=lubridate::ymd(date),y=t_pop_older_adult_newly_avoid_walk_hi_young,color = "RF - heat index, minus age")) + 
+  geom_point(data=impact_by_day_df,aes(x=lubridate::ymd(date),y=t_pop_older_adult_newly_avoid_walk_age_young,color = "RF - age only")) +
+  scale_color_manual(
+    name = 'Real Feel Type',
+    breaks = c("RF - full", "RF - heat index", "RF - full, minus age", "RF - heat index, minus age","RF - age only"),
+    values = c("RF - full"="blue", "RF - heat index"="red", "RF - full, minus age"="lightblue", "RF - heat index, minus age"="pink","RF - age only"="gray")
+  ) +
+  #theme(legend.title = element_text(size = 20), legend.text = element_text(size = 14)) +
+  xlab(NULL) +
+  ylab(NULL) +
+  ggtitle("# Older Adults Newly Avoiding Walking Trips - Young params")
+
+by_day_smoothed_young_params <- 
+  ggplot() + 
+  geom_smooth(data=impact_by_day_df,aes(x=lubridate::ymd(date),y=t_pop_older_adult_newly_avoid_walk_age_temp_dp_hi_young,color = "RF - full")) + 
+  geom_smooth(data=impact_by_day_df,aes(x=lubridate::ymd(date),y=t_pop_older_adult_newly_avoid_walk_age_hi_young,color = "RF - heat index")) + 
+  geom_smooth(data=impact_by_day_df,aes(x=lubridate::ymd(date),y=t_pop_older_adult_newly_avoid_walk_temp_dp_hi_young,color = "RF - full, minus age")) + 
+  geom_smooth(data=impact_by_day_df,aes(x=lubridate::ymd(date),y=t_pop_older_adult_newly_avoid_walk_hi_young,color = "RF - heat index, minus age")) + 
+  geom_smooth(data=impact_by_day_df,aes(x=lubridate::ymd(date),y=t_pop_older_adult_newly_avoid_walk_age_young,color = "RF - age only")) +
+  scale_color_manual(
+    name = 'Real Feel Type',
+    breaks = c("RF - full", "RF - heat index", "RF - full, minus age", "RF - heat index, minus age","RF - age only"),
+    values = c("RF - full"="blue", "RF - heat index"="red", "RF - full, minus age"="lightblue", "RF - heat index, minus age"="pink","RF - age only"="gray")
+  ) +
+  #theme(legend.title = element_text(size = 20), legend.text = element_text(size = 14)) +
+  xlab(NULL) +
+  ylab(NULL) +
+  ggtitle("# Older Adults Newly Avoiding Walking Trips - Young params")
+
+by_day_patchwork_young_params <- 
+  by_day_young_params/by_day_smoothed_young_params + plot_annotation(tag_levels = 'A')
+
+
 ################################ impact by week - focus on summer months
 
 # filter to just the summer months
@@ -213,22 +260,46 @@ impact_by_week_by_tract <-
   ) %>%
   ungroup() %>%
   mutate(
-    across(-c(tract_id,tract_geoid,tract_name),.fns = list(
-      g_than_1w = ~ifelse(.x>1,1,0)
+    avoid_trip = ifelse(avoid_trip_sum == n_weeks,1,0),
+    avoid_trip_age = ifelse(newly_avoid_trip_age_sum_sum == n_weeks,1,0)) %>%
+  select(-c(avoid_trip_sum,newly_avoid_trip_age_sum_sum,newly_avoid_trip_age_young_sum_sum)) %>%
+  select(tract_id,tract_geoid,tract_name,avoid_trip,avoid_trip_age,everything()) %>%
+  mutate(
+    across(-c(tract_id,tract_geoid,tract_name,avoid_trip,avoid_trip_age),.fns = list(
+      g_than_1w = ~ifelse(.x>1,1,0),
+      g_than_25pctw = ~ifelse(.x/n_weeks>.25,1,0),
+      g_than_50pctw = ~ifelse(.x/n_weeks>.50,1,0),
+      g_than_75pctw = ~ifelse(.x/n_weeks>.75,1,0)
     ))
-  )
+  ) 
 
-hi <- 
+impact_by_week_by_tract_sf.utm <- 
   tracts_within_city_sf.utm %>% 
+  select(GEOID,ALAND,AWATER,geometry) %>%
   left_join(.,
-            impact_by_tract,
-            by = c("GEOID"="tract_geoid"))
+            impact_by_week_by_tract,
+            by = c("GEOID"="tract_geoid")) 
+
+impact_by_week_by_tract_sf.utm <- 
+  impact_by_week_by_tract_sf.utm %>%
+  left_join(.,
+            state_tracts_acs_estimates_df %>% select(-Name),
+            by = c("GEOID" = "GEOID")) %>%
+  mutate(pop_per_km2 = tpop/(ALAND/1000000))
+
+pop_per_km2_fac = cut(impact_by_week_by_tract_sf.utm$pop_per_km2, 
+                      breaks=c(-1,250,500,1000,3000,6000,9000,12000,20000,75000,100000,150000),
+                      labels=c("0-250","250-500","500-1k","1-3k","3-6k","6-9k","9-12k","12-20k","20-75k","75-100k","100-150k"),
+                      ordered_result = TRUE)
+
+impact_by_week_by_tract_sf.utm$pop_per_km2_factor <- pop_per_km2_fac
 
 impact_by_week_by_tract_summary <- 
   impact_by_week_by_tract %>%
   summarise(
     n=n(),
-    n_avoid_trip = sum(avoid_trip_sum == 52,na.rm = TRUE),
+    n_avoid_trip = sum(avoid_trip == 1,na.rm = TRUE),
+    n_avoid_trip_age = sum(avoid_trip_age == 1,na.rm = TRUE),
     across(starts_with("newly_avoid_trip"),.fns=list(sum = ~sum(.x > 1,na.rm = TRUE)))
   )
 
