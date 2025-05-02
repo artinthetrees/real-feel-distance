@@ -2,7 +2,7 @@ library(tidyverse)
 library(ggplot2)
 library(patchwork)
 
-get_boundary_maps <- function(city_string, county_string, state_string, year_num, crs_utm, output_path, my_font_size=10){
+get_boundary_maps <- function(city_string, county_string, state_string, year_num, crs_utm, output_path){
   
   states.utm <- 
     tigris::states(cb=TRUE, year=year_num, resolution="20m") %>%
@@ -127,75 +127,7 @@ get_boundary_maps <- function(city_string, county_string, state_string, year_num
   tracts.within.city.utm <- 
     tracts.utm %>% dplyr::filter(GEOID %in% tracts.within.city)
   
-  ###########################################################################################################################################################
-  # plots
-  
-  # raw plots - counties overview
-  counties.within.city.2km.buffer.plot <- 
-    ggplot() +
-    geom_sf(data=counties.within.city.2km.buffer.utm, aes(fill=STUSPS)) +
-    geom_sf_text(data=counties.within.city.2km.buffer.utm, aes(label=NAME),colour = "white",size=my_font_size/.pt) +
-    coord_sf(datum=sf::st_crs(city.utm)) +
-    theme_void() +
-    theme(legend.position = "none")
-  
-  counties.within.city.2km.buffer.plus.city.plot <- 
-    ggplot() +
-    geom_sf(data=counties.within.city.2km.buffer.utm, aes(fill=STUSPS)) +
-    geom_sf(data=city.utm) +
-    geom_sf_text(data=city.utm, aes(label=NAME),size=my_font_size/.pt) +
-    coord_sf(datum=sf::st_crs(city.utm)) +
-    theme_void() +
-    labs(fill="State")
-  
-  # raw plots - tracts overview
-  tracts.within.city.2km.buffer.plus.city.plot.0 <- 
-    ggplot() +
-    geom_sf(data=counties.within.city.2km.buffer.utm, fill=NA) +
-    geom_sf(data=tracts.within.city.2km.buffer.utm, aes(fill=STUSPS)) +
-    geom_sf(data=city.utm,alpha=0.5,color=NA) +
-    geom_sf_text(data=city.utm, aes(label=NAME),size=my_font_size/.pt) +
-    coord_sf(datum=sf::st_crs(city.utm)) +
-    theme_void() +
-    labs(fill="State")
-  
-  tracts.within.city.2km.buffer.plus.city.plot.1 <- 
-    ggplot() +
-    geom_sf(data=tracts.within.city.2km.buffer.utm, aes(fill=STUSPS)) +
-    geom_sf(data=city.2km.buffer.utm, fill=NA, color="blue") +
-    geom_sf(data=city.utm,alpha=0.5,color=NA) +
-    geom_sf_text(data=city.utm, aes(label=NAME),size=my_font_size/.pt) +
-    coord_sf(datum=sf::st_crs(city.utm)) +
-    theme_void() +
-    labs(fill="State")
-  
-  tracts.within.city.2km.buffer.plus.city.plot.2 <- 
-    ggplot() +
-    geom_sf(data=tracts.within.city.2km.buffer.utm, aes(fill=NAMELSADCO)) +
-    geom_sf(data=city.2km.buffer.utm, fill=NA, color="blue") +
-    geom_sf(data=city.utm,alpha=0.5,color=NA) +
-    geom_sf_text(data=city.utm, aes(label=NAME),size=my_font_size/.pt) +
-    coord_sf(datum=sf::st_crs(city.utm)) +
-    theme_void() +
-    labs(fill="County")
-  
-  # final plots - counties overview
-  counties.overview.plot <- 
-    counties.within.city.2km.buffer.plot +
-    counties.within.city.2km.buffer.plus.city.plot +
-    plot_annotation(
-      tag_levels = "A"
-    )
-  
-  # final plots - tracts overview
-  tracts.overview.plot <- 
-    tracts.within.city.2km.buffer.plus.city.plot.0 +
-    tracts.within.city.2km.buffer.plus.city.plot.1 +
-    tracts.within.city.2km.buffer.plus.city.plot.2 +
-    plot_annotation(
-      tag_levels = "A"
-    )
-  
+ 
   if (!is.null(output_path)){
     #save.image(output_path)
     save(
