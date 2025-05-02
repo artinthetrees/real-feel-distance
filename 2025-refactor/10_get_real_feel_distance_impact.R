@@ -1,4 +1,5 @@
 library(tidyverse)
+library(ggplot2)
 #################################################################
 # list all objs in workspace at start
 
