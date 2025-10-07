@@ -11,8 +11,10 @@ ws_objs <- ls()
 #################################################################
 # define outpath for this step
 
-output_path <- Gmisc::pathJoin(output_dir,"intermediate","gtfs_data",city_output_fname)
-print(output_path)
+sub_output_dir <- Gmisc::pathJoin(output_dir,"intermediate","r5r_routing_input_data",city_string)
+print(sub_output_dir)
+
+if (!dir.exists(sub_output_dir)) {dir.create(sub_output_dir,recursive = TRUE)}
 
 #################################################################
 # pull in objs needed from previous parts of pipeline for this step
@@ -85,8 +87,8 @@ MobilityData_sf <- MobilityData_sf %>% filter(servesAreaOfInterest)
 #               fillOpacity = 0.1, label = substr(MobilityData_sf$provider, 0, 60))
 
 for (i in 1:nrow(MobilityData_sf)) {
-  fname <- paste0(MobilityData_sf$provider[i],".zip")
-  local_path <- Gmisc::pathJoin(output_dir,"intermediate","r5r_routing_input_data",city_string,fname)
+  fname <- paste0(MobilityData_sf$provider[i],"_GTFS.zip")
+  local_path <- Gmisc::pathJoin(sub_output_dir,fname)
   print(local_path)
   download.file(MobilityData_sf$urls.direct_download[i],local_path)
 }
@@ -95,5 +97,11 @@ for (i in 1:nrow(MobilityData_sf)) {
 # test_amtrak <- tidytransit::read_gtfs("./2025-refactor/output_data/intermediate/r5r_routing_input_data/Chicago/Amtrak.zip")
 # summary(test_amtrak)
 
+#################################################################
+# clean up workspace - remove any objs created during this step
+
+rm(list = setdiff(ls(),ws_objs))
+
+#################################################################
 
 
