@@ -1,0 +1,173 @@
+library(tidyverse)
+library(ggplot2)
+library(patchwork)
+
+get_boundary_maps <- function(city_string, county_string, state_string, year_num, crs_utm, output_path){
+  
+  states.utm <- 
+    tigris::states(cb=TRUE, year=year_num, resolution="20m") %>%
+    tigris::shift_geometry() %>%
+    sf::st_transform(crs=crs_utm)
+  
+  ##########################################################################################################################################################
+  # get state boundary and state + buffer boundary - state + buffer will be used to identify the states surrounding the state of interest
+  state.utm <- 
+    states.utm %>% dplyr::filter(STUSPS == state_string)
+  
+  state.2km.buffer.utm <- 
+    sf::st_buffer(state.utm, dist = 2000)
+  
+  ###########################################################################################################################################################
+  # get all states surrounding state of interest - list and map
+  states.clipped.by.state.2km.buffer.utm <- 
+    rmapshaper::ms_clip(target=states.utm, clip=state.2km.buffer.utm, remove_slivers = FALSE)
+  
+  # get list
+  states.within.state.2km.buffer <- 
+    list(states.clipped.by.state.2km.buffer.utm$STUSPS)[[1]]
+  
+  # print list
+  print(states.within.state.2km.buffer)
+  
+  # get map
+  states.within.state.2km.buffer.utm <- 
+    states.utm %>% dplyr::filter(STUSPS %in% states.within.state.2km.buffer)
+  
+  ###########################################################################################################################################################
+  # get city boundary and city + buffer boundary
+  
+  city.utm <- 
+    tigris::places(cb=TRUE, state=state_string, year=year_num) %>%
+    dplyr::filter(NAME==city_string) %>%
+    sf::st_transform(crs=crs_utm)
+  
+  city.2km.buffer.utm <- 
+    sf::st_buffer(city.utm,dist=2000)
+  
+  ###########################################################################################################################################################
+  # get all states within city + buffer boundary - list and map
+  states.clipped.by.city.2km.buffer.utm <- 
+    rmapshaper::ms_clip(target=states.utm, clip=city.2km.buffer.utm, remove_slivers = FALSE)
+  
+  # get list
+  states.within.city.2km.buffer <- 
+    list(states.clipped.by.city.2km.buffer.utm$STUSPS)[[1]]
+  
+  # print list
+  print(states.within.city.2km.buffer)
+  
+  # get map
+  states.within.city.2km.buffer.utm <- 
+    states.utm %>% dplyr::filter(STUSPS %in% states.within.city.2km.buffer)
+  
+  ###########################################################################################################################################################
+  # get all counties within city + buffer boundary - list and map
+  
+  # note: tigris counties function can take a list of states and return a concatenated df across all states in list
+  counties.utm <- 
+    tigris::counties(cb=TRUE,state=states.within.city.2km.buffer,year=year_num) %>%
+    sf::st_transform(crs=crs_utm)
+  
+  counties.clipped.by.city.2km.buffer.utm <- 
+    rmapshaper::ms_clip(target=counties.utm, clip=city.2km.buffer.utm, remove_slivers = FALSE)
+  
+  # get list
+  counties.within.city.2km.buffer <- 
+    list(counties.clipped.by.city.2km.buffer.utm$GEOID)[[1]]
+  
+  # print list
+  print(counties.within.city.2km.buffer)
+  
+  # get map
+  counties.within.city.2km.buffer.utm <- 
+    counties.utm %>% dplyr::filter(GEOID %in% counties.within.city.2km.buffer)
+  
+  ###########################################################################################################################################################
+  # get all census tracts within city + buffer boundary - list and map
+  
+  # note: tigris tracts function can NOT take a list of states and return a concatenated df across all states in list
+  # so we have to iterate through states instead
+  t_list = list()
+  for (i in 1:length(states.within.city.2km.buffer)) {
+    t <- 
+      tigris::tracts(cb=TRUE,state=states.within.city.2km.buffer[i],year=year_num) %>%
+      sf::st_transform(crs=crs_utm)
+    t_list[[i]] <- t
+  }
+  tracts.utm <- dplyr::bind_rows(t_list)
+  
+  tracts.clipped.by.city.2km.buffer.utm <- 
+    rmapshaper::ms_clip(target=tracts.utm, clip=city.2km.buffer.utm, remove_slivers = FALSE)
+  
+  # get list
+  tracts.within.city.2km.buffer <- 
+    list(tracts.clipped.by.city.2km.buffer.utm$GEOID)[[1]]
+  
+  # print list
+  print(tracts.within.city.2km.buffer)
+  
+  # get map
+  tracts.within.city.2km.buffer.utm <- 
+    tracts.utm %>% dplyr::filter(GEOID %in% tracts.within.city.2km.buffer)
+  
+  ###########################################################################################################################################################
+  # get all census tracts within city - list and map
+  
+  tracts.clipped.by.city.utm <- 
+    rmapshaper::ms_clip(target=tracts.utm, clip=city.utm, remove_slivers = FALSE)
+  
+  # get list
+  tracts.within.city <- 
+    list(tracts.clipped.by.city.utm$GEOID)[[1]]
+  
+  # print list
+  print(tracts.within.city)
+  
+  # get map
+  tracts.within.city.utm <- 
+    tracts.utm %>% dplyr::filter(GEOID %in% tracts.within.city)
+  
+ 
+  if (!is.null(output_path)){
+    #save.image(output_path)
+    save(
+      states.utm,
+      state.utm,
+      states.within.state.2km.buffer,
+      states.within.state.2km.buffer.utm,
+      city.utm,
+      city.2km.buffer.utm,
+      states.within.city.2km.buffer,
+      states.within.city.2km.buffer.utm,
+      counties.within.city.2km.buffer,
+      counties.within.city.2km.buffer.utm,
+      tracts.within.city.2km.buffer,
+      tracts.within.city.2km.buffer.utm,
+      tracts.within.city,
+      tracts.within.city.utm,
+      file = output_path)
+  }
+  
+  values <- Hmisc::llist(
+    states.utm,
+    state.utm,
+    states.within.state.2km.buffer,
+    states.within.state.2km.buffer.utm,
+    city.utm,
+    city.2km.buffer.utm,
+    states.within.city.2km.buffer,
+    states.within.city.2km.buffer.utm,
+    counties.within.city.2km.buffer,
+    counties.within.city.2km.buffer.utm,
+    tracts.within.city.2km.buffer,
+    tracts.within.city.2km.buffer.utm,
+    tracts.within.city,
+    tracts.within.city.utm
+  )
+  
+  # values = as.list(environment())
+  # values = values[setdiff(names(values), names(formals()))]
+  return(values)
+  
+}
+

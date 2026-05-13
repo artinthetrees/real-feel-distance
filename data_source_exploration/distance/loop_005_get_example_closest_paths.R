@@ -71,7 +71,9 @@ for (j in 1:length(get_paths)){
       path_v.lines
   } else if (j > 1){
     example_paths.bind <- 
-      maptools::spRbind(example_paths.bind,path_v.lines)
+      # maptools package was deprecated in 2023; this is the recommended update here
+      #maptools::spRbind(example_paths.bind,path_v.lines)
+      rbind(example_paths.bind,path_v.lines)
   }
   
 }

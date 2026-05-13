@@ -45,7 +45,9 @@ points_to_line <- function(data, long, lat, id_value = NULL, id_field = NULL, so
     for (p in 2:length(paths)) {
       id <- paste0("line", as.character(p))
       l <- sp::SpatialLines(list(sp::Lines(list(sp::Line(paths[[p]])), id)))
-      sp_lines <- maptools::spRbind(sp_lines, l)
+      # maptools package was deprecated in 2023; this is the recommended update here
+      #sp_lines <- maptools::spRbind(sp_lines, l)
+      sp_lines <- rbind(sp_lines, l)
     }
     
     return(sp_lines)
