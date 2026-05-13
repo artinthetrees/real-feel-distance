@@ -1,0 +1,14 @@
+services:
+  rstudio:
+    # image: rocker/geospatial
+    container_name: rstudio-spatial
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      PASSWORD: password
+    ports:
+      - 8787:8787
+    # working_dir: /home/rstudio/project
+    volumes:
+      - .:/home/rstudio/project
