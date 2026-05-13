@@ -11,23 +11,37 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgeos-dev \
     libproj-dev \
     libnetcdf-dev \
+    libnode-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install specific R packages for spatial analysis
-RUN install2.r --error \
-    sf \
-    terra \
-    raster \
-    stars \
-    leaflet \
-    mapview \
-    rayshader \
-    spatial \
-    spatstat \
-    gstat \
-    tidyverse \
-    && rm -rf /tmp/downloaded_packages
+# Install renv using install2.r
+RUN install2.r --error renv
+
+RUN mkdir /home/rstudio/project
+
+# WORKDIR /home/rstudio/project
+# COPY renv.lock renv.lock
+
+# # Restore the project library
+# RUN R -e 'renv::restore()'
+
+
+# # Install specific R packages for spatial analysis
+# RUN install2.r --error \
+#     renv \
+#     sf \
+#     terra \
+#     raster \
+#     stars \
+#     leaflet \
+#     mapview \
+#     rayshader \
+#     spatial \
+#     spatstat \
+#     gstat \
+#     tidyverse \
+#     && rm -rf /tmp/downloaded_packages
 
 # Default RStudio username/password is set by the rocker base image
 # (usually rstudio / password in the console)
