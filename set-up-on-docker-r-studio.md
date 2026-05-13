@@ -54,3 +54,5 @@ RUN install2.r --error \
 - Open your web browser and navigate to http://localhost:8787.Login: 
 - Username is rstudio, Password is yourpassword (whatever password you set up in run command).
 - Your local project files will be accessible in the /home/rstudio/data folder within RStudio.
+
+4. Also check out: https://rocker-project.org/images/versioned/rstudio.html#how-to-use
